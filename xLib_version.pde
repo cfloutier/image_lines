@@ -10,6 +10,8 @@ String get_xlib_version()
  
  ## [2.2.12] - 2026-05-01
  - Image.pde renommé en xLib_Image.pde pour intégration dans la xLib partagée
+ - xLib_Image: _image_gui variable globale pour éviter les erreurs dans les projets sans image
+ - imgFileSelected() vérifie _image_gui != null avant d'appeler setImage()
 
  ## [2.2.11] - 2026-04-17
  - l'export de fichiers svg et pdf a une taille adaptée à la page.

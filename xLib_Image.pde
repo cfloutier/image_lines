@@ -155,6 +155,8 @@ class DataImage extends GenericData
   // }
 }
 
+ImageGUI _image_gui = null;
+
 class ImageGUI extends GUIPanel
 {
   DataImage data;
@@ -163,6 +165,7 @@ class ImageGUI extends GUIPanel
   {
     super("Image", data);
     this.data = data;
+    _image_gui = this;
   }
 
 
@@ -250,7 +253,7 @@ void imgFileSelected(File selection) {
 
     //println("File extension OK: " + fileOK);
 
-    if (fileOK)
-      data.image.setImage(file_name);
+    if (fileOK && _image_gui != null)
+      _image_gui.data.setImage(file_name);
   }
 }
