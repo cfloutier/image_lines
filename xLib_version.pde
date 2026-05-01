@@ -1,6 +1,6 @@
 String get_xlib_version()
 {
-  return "2.2.11";
+  return "2.2.12";
 }
 
 
@@ -8,6 +8,9 @@ String get_xlib_version()
 
  # CHANGELOG
  
+ ## [2.2.12] - 2026-05-01
+ - Image.pde renommé en xLib_Image.pde pour intégration dans la xLib partagée
+
  ## [2.2.11] - 2026-04-17
  - l'export de fichiers svg et pdf a une taille adaptée à la page.
 
