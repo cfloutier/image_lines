@@ -78,10 +78,6 @@ void draw()
   data.image.buildBlurredImage();
   data.image.draw();
 
-  pushMatrix();
-
-  scale(data.page.global_scale, data.page.global_scale);
-
   if (data.any_change())
   {
     generator.buildLines();
@@ -100,6 +96,5 @@ void draw()
   if (data.threshold.draw)
     threshold_filter.draw();
 
-  popMatrix();
   end_draw();
 }

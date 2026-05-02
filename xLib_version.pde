@@ -1,6 +1,6 @@
 String get_xlib_version()
 {
-  return "2.2.12";
+  return "2.2.13";
 }
 
 
@@ -8,6 +8,10 @@ String get_xlib_version()
 
  # CHANGELOG
  
+ ## [2.2.13] - 2026-05-02
+ - xLib_Image.draw(): coordonnées corrigées pour centrage via translate (origine déjà au centre via start_draw)
+ - image dessinée à (-image_w/2, -image_h/2) au lieu de (width/2 - image_w/2, height/2 - image_h/2)
+
  ## [2.2.12] - 2026-05-01
  - Image.pde renommé en xLib_Image.pde pour intégration dans la xLib partagée
  - xLib_Image: _image_gui variable globale pour éviter les erreurs dans les projets sans image

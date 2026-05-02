@@ -83,7 +83,7 @@ class DataImage extends GenericData
       float image_h = image.height;
 
       tint(255, ImageAlpha);
-      image(image, width/2 - image_w/2, height/2- image_h/2, image_w, image_h);
+      image(image, -image_w/2, -image_h/2, image_w, image_h);
     }
   }
 
