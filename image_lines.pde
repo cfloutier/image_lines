@@ -28,8 +28,7 @@ import processing.svg.*;
 ImgProcData data;
 DataGUI dataGui;
 
-
-ImageMoultiLinesGenerator generator;
+MultiLinesGenerator generator;
 ThresholdFilter threshold_filter;
 
 //SourceFiles sourceFilesGui;
@@ -44,7 +43,7 @@ void setup()
   data = new ImgProcData();
   dataGui = new DataGUI(data);
 
-  generator = new ImageMoultiLinesGenerator(data.lines);
+  generator = new MultiLinesGenerator(data.lines);
 
   generator.straight = dataGui.lines_ui.straightGroup;
   generator.circle = dataGui.lines_ui.circleGroup;
@@ -76,7 +75,7 @@ void draw()
   start_draw();
 
   data.image.buildBlurredImage();
-  data.image.draw();
+  data.image.draw(dataGui.images_ui.imageAlpha);
 
   if (data.any_change())
   {

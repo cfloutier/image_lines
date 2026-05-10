@@ -150,9 +150,9 @@ abstract class ImageLinesGenerator {
   }
 }
 
-class ImageMoultiLinesGenerator extends ImageLinesGenerator
+class MultiLinesGenerator extends ImageLinesGenerator
 {
-  public ImageMoultiLinesGenerator(DataLines data_lines) {
+  public MultiLinesGenerator(DataLines data_lines) {
 
     super(data_lines);
   }

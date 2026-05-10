@@ -8,7 +8,6 @@ class DataImage extends GenericData
   String source_file = "eye.jpg";
 
   float Width = 500;
-  float ImageAlpha = 0;
   int   Blur = 2;
   int Contrast = 0;
 
@@ -72,9 +71,9 @@ class DataImage extends GenericData
     }
   }
 
-  void draw()
+  void draw(float imageAlpha)
   {
-    if (blurred_image != null && ImageAlpha > 0)
+    if (blurred_image != null && imageAlpha > 0)
     {
       // draw centered
       PImage image =  this.blurred_image;
@@ -82,7 +81,7 @@ class DataImage extends GenericData
       float image_w = image.width;
       float image_h = image.height;
 
-      tint(255, ImageAlpha);
+      tint(255, imageAlpha);
       image(image, -image_w/2, -image_h/2, image_w, image_h);
     }
   }
@@ -160,6 +159,7 @@ ImageGUI _image_gui = null;
 class ImageGUI extends GUIPanel
 {
   DataImage data;
+  float imageAlpha = 0; // GUI-only : n'affecte pas data.changed
 
   public ImageGUI(DataImage data)
   {
@@ -203,7 +203,7 @@ class ImageGUI extends GUIPanel
 
     nextLine();
     Width = addSlider("Width", "Width", 200, 2000);
-    ImageAlpha = addSlider("ImageAlpha", "Image Alpha", 0, 255);
+    ImageAlpha = addSlider("ImageAlpha", "Image Alpha", this, 0, 255);
     nextLine();
     Blur = addIntSlider("Blur", "Blur", 1, 20);
   }
@@ -211,8 +211,19 @@ class ImageGUI extends GUIPanel
   void setGUIValues()
   {
     Width.setValue(data.Width);
-    ImageAlpha.setValue(data.ImageAlpha);
+    ImageAlpha.setValue(imageAlpha);
     Blur.setValue(data.Blur);
+  }
+
+  public void controlEvent(ControlEvent theEvent)
+  {
+    if (theEvent.isController() && theEvent.getController() == ImageAlpha)
+    {
+      // GUI-only : pas de data.changed
+      imageAlpha = ImageAlpha.getValue();
+      return;
+    }
+    super.controlEvent(theEvent);
   }
 }
 

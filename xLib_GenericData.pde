@@ -54,7 +54,8 @@ class GenericData
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
-        if (name == "changed" || name =="this$0")
+        if (name == "changed" || name =="this$0" ||
+            java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
           continue;
         }
@@ -93,7 +94,8 @@ class GenericData
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
-        if (name == "changed" || name =="this$0")
+        if (name == "changed" || name =="this$0" ||
+            java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
 
           continue;
@@ -134,7 +136,8 @@ class GenericData
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
-        if (name == "changed" || name =="this$0")
+        if (name == "changed" || name =="this$0" ||
+            java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
           continue;
         }
