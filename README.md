@@ -165,3 +165,68 @@ Supports PDF, SVG, and DXF export (plotter-ready).
 
 ### 2026-05-10
 - **README**: initial documentation.
+
+### 2026-05-02
+- **Fix**: image centering correction.
+
+### 2026-05-01
+- **Renaming**: `Image` moved to `xLib_Image`.
+
+### 2026-04-26
+- **Fix**: circle centre offset correction.
+- **Settings**: added `artemis` presets.
+
+### 2026-04-17 — v2.2.11
+- **Export**: SVG and PDF export now use page-adapted dimensions.
+
+### 2026-04-14
+- **Fix**: alignment corrections.
+
+### 2026-04-13 — v2.2.9
+- **Polyline**: simplified hierarchy — removed `SegmentedPolyline`.
+- **Clipping**: extracted common `clipLineToCenteredRect()` into `xLib_ClippingUtils`, unified across all 3 projects.
+
+### 2026-04-13 — v2.2.7
+- **Refactoring**: unified `Polyline` usage across all 3 projects.
+- **Types**: introduced `ImageLine` to clarify line types.
+- **Lazy update**: `data.any_change()` mechanism to avoid unnecessary redraws.
+
+### 2026-04-13 — v2.2.6
+- **xLib**: generic `Polyline` abstraction extracted into `xLib_Polyline`.
+
+### 2026-03-01
+- **Refactoring**: major data restructuring, data moved to dedicated files, xLib extraction.
+- **Fix**: filename fix on save.
+
+### 2026-02-28 — v2.2.4
+- **Sinus lines**: sinusoidal line mode added.
+- **Scaling**: global scale support added.
+- **xLib ControlGroup**: UI controls can now be grouped and shown/hidden together.
+- **Fixes**: canvas fix, toggle fix, xLib fixes.
+
+### 2026-02-14
+- **Processing compatibility**: adaptations for Processing 3 retrocompatibility.
+
+### 2026-01-07
+- **Navigation**: added Next / Prev file navigation.
+
+### 2026-01-03
+- **Fix**: line spacing correction.
+- **xLib**: update and cleanup.
+
+### 2025-05-16
+- **Clean version**: scanlines stabilised (straight lines working cleanly).
+- **Settings**: `default` tree preset added.
+
+### 2025-05-10
+- **Ellipse mode**: ellipse support added to circle lines.
+
+### 2025-05-09
+- **Fix**: post-load correction.
+- **Cleanup**: major code cleanup.
+
+### 2025-05-06
+- **Straight lines**: first working implementation of image-mapped straight lines.
+
+### 2025-05-05
+- **First steps**: project created.
