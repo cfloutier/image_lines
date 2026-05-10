@@ -1,12 +1,15 @@
 String get_xlib_version()
 {
-  return "2.2.14";
+  return "2.2.15";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [2.2.15] - 2026-05-10
+ - xLib_FileUI: FileGUI constructor takes optional boolean show_clipping (default false) — hides clipping controls in projects that don't use it
 
  ## [2.2.14] - 2026-05-10
  - xLib_Image: ImageAlpha removed from DataImage — now GUI-only in ImageGUI (no longer triggers data.changed or regeneration)

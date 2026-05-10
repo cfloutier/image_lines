@@ -5,7 +5,7 @@ class DataGUI extends MainPanel
   public DataGUI(ImgProcData data)
   {
     this.data = data;
-    file_ui = new FileGUI(data);
+    file_ui = new FileGUI(data, true);
     images_ui = new ImageGUI(data.image);
     style_ui = new StyleGUI(data.style);
     lines_ui = new LinesGUI(data.lines);

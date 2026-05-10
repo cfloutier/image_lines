@@ -21,6 +21,7 @@ FileGUI file_ui;
 
 class FileGUI extends GUIPanel
 {
+  boolean show_clipping;
 
   DataGlobal global_data;
   DataPage page_data;
@@ -31,10 +32,16 @@ class FileGUI extends GUIPanel
 
   FileGUI(DataGlobal data)
   {
+    this(data, false);
+  }
+
+  FileGUI(DataGlobal data, boolean show_clipping)
+  {
     super("Files", data.page);
     file_ui  = this;
     this.global_data = data;
     this.page_data = data.page;
+    this.show_clipping = show_clipping;
   }
 
   void setGUIValues()
@@ -42,23 +49,29 @@ class FileGUI extends GUIPanel
     println("setGUIValues " + data.name);
     main_label.setText("Files : " + data.name);
     scale_slider.setValue(page_data.global_scale -1);
-    clip_toggle.setValue(page_data.clipping);
-    clip_slider_width.setValue(page_data.clip_width);
-    clip_slider_height.setValue(page_data.clip_height);
+    if (show_clipping)
+    {
+      clip_toggle.setValue(page_data.clipping);
+      clip_slider_width.setValue(page_data.clip_width);
+      clip_slider_height.setValue(page_data.clip_height);
+    }
     paper_format_radio.activate(page_data.paper_format);
     margin_radio.activate(page_data.margin);
   }
 
   void update_ui()
   {
-    if (page_data.clipping)
+    if (show_clipping)
     {
-      clip_slider_width.show();
-      clip_slider_height.show();
-    } else
-    {
-      clip_slider_width.hide();
-      clip_slider_height.hide();
+      if (page_data.clipping)
+      {
+        clip_slider_width.show();
+        clip_slider_height.show();
+      } else
+      {
+        clip_slider_width.hide();
+        clip_slider_height.hide();
+      }
     }
   }
 
@@ -112,6 +125,13 @@ class FileGUI extends GUIPanel
 
     clip_slider_width = addSlider("clip_width", "Clip width", 0, 2000);
     clip_slider_height = addSlider("clip_height", "Clip height", 0, 2000);
+
+    if (!show_clipping)
+    {
+      clip_toggle.hide();
+      clip_slider_width.hide();
+      clip_slider_height.hide();
+    }
     
     nextLine();
     addLabel("Export Format :");
