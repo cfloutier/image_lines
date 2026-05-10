@@ -7,14 +7,16 @@
   "Page": {
     "clipping": false,
     "clip_width": 0,
+    "margin": 2,
     "clip_height": 0,
+    "paper_format": 0,
     "global_scale": 1
   },
   "Image": {
     "reset_image": false,
     "Blur": 2,
     "ImageAlpha": 0,
-    "Width": 1418,
+    "Width": 1622,
     "Contrast": 0,
     "source_file": "3db937f5-652c-4602-b5cc-0d2612df2db5.jpg"
   },
@@ -25,21 +27,18 @@
       "size": 520.7666625976562,
       "direction_sinus": 0
     },
-    "canvas_width": 715,
     "lines_spacing": 1,
     "nb_lines": 1890,
     "precision": 1.4413334131240845,
-    "canvas_height": 307,
     "draw": false,
     "type": 1,
     "CircleLines": {
       "max_radius": 1890,
       "min_radius": 0,
-      "ellipse": 0.5000002384185791,
+      "ellipse": 0,
       "center_y": 493.333251953125,
       "center_x": -959.9998779296875
     },
-    "use_canvas": false,
     "StraightLines": {
       "size": 520.7666625976562,
       "direction": -39.599998474121094

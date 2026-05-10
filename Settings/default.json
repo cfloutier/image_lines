@@ -7,14 +7,16 @@
   "Page": {
     "clipping": false,
     "clip_width": 0,
+    "margin": 2,
     "clip_height": 0,
-    "global_scale": 1
+    "paper_format": 0,
+    "global_scale": 1.1800003051757812
   },
   "Image": {
     "reset_image": false,
     "Blur": 2,
     "ImageAlpha": 0,
-    "Width": 476,
+    "Width": 710,
     "Contrast": 0,
     "source_file": "tree.png"
   },
@@ -25,11 +27,9 @@
       "size": 202.36666870117188,
       "direction_sinus": 0
     },
-    "canvas_width": 415,
-    "lines_spacing": 1.435999870300293,
-    "nb_lines": 281,
+    "lines_spacing": 1.133333444595337,
+    "nb_lines": 2019,
     "precision": 3.5973334312438965,
-    "canvas_height": 379,
     "draw": false,
     "type": 0,
     "CircleLines": {
@@ -39,10 +39,9 @@
       "center_y": 26.6666259765625,
       "center_x": -33.333251953125
     },
-    "use_canvas": false,
     "StraightLines": {
-      "size": 202.36666870117188,
-      "direction": 45.600006103515625
+      "size": 1144.2999267578125,
+      "direction": -44.400001525878906
     }
   },
   "Threshold": {
