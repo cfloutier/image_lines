@@ -310,8 +310,9 @@ void start_draw()
     if (name == "")
       name = "default";
 
-    float newWidth = width ;
-    float newheight = height ;
+    float[] paper_dims = getPaperDimensions(data.page.paper_format);
+    float newWidth   = (paper_dims != null) ? paper_dims[0] : width;
+    float newheight  = (paper_dims != null) ? paper_dims[1] : height;
 
     // Add paper format to filename
     String format_suffix = "";
@@ -344,15 +345,31 @@ void start_draw()
     current_graphics.beginDraw();
     
     
-    // Calculate active scale for export
-    float active_scale = (data.page.paper_format != PAPER_NONE) ? file_ui.export_scale : data.page.global_scale;
-    printExportDebugInfo(file_ui.last_bbox, active_scale, data.page.paper_format);
+    // Recalculate scale at export time (margin/format may have changed since buildLines)
+    boolean shouldRotate = shouldRotateForExport(file_ui.last_bbox);
+    file_ui.export_should_rotate = shouldRotate;
+    float active_scale;
+    if (data.page.paper_format != PAPER_NONE) {
+      active_scale = calculateExportScale(file_ui.last_bbox, data.page.paper_format, data.page.margin, shouldRotate);
+      file_ui.export_scale = active_scale;
+    } else {
+      active_scale = data.page.global_scale;
+    }
+    printExportDebugInfo(file_ui.last_bbox, active_scale, data.page.paper_format, data.page.margin, getPaperDimensions(data.page.paper_format));
 
     // Apply transformations to current_graphics (PDF/SVG/DXF)
     current_graphics.pushMatrix();
+    current_graphics.stroke(data.style.lineColor.col);
     current_graphics.strokeWeight(data.style.lineWidth * active_scale);
+    // Centre the content on the canvas (mirrors screen mode's translate(width/2, height/2))
+    current_graphics.translate(newWidth / 2, newheight / 2);
     current_graphics.scale(active_scale, active_scale);
-    
+    // Fine-centre using bbox midpoint when available
+    if (file_ui.last_bbox != null) {
+      float cx = (file_ui.last_bbox.minX + file_ui.last_bbox.maxX) / 2;
+      float cy = (file_ui.last_bbox.minY + file_ui.last_bbox.maxY) / 2;
+      current_graphics.translate(-cx, -cy);
+    }
     // Rotate only if drawing is landscape-oriented (wider than tall)
     if (file_ui.export_should_rotate) {
       current_graphics.rotate(-PI/2);

@@ -1,12 +1,42 @@
 String get_xlib_version()
 {
-  return "2.2.15";
+  return "2.2.19";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [2.2.19] - 2026-05-10
+ - xLib_Polyline: added getBoundingBox() to Polyline class
+ - xLib_Polyline: added PolylineGroup class — manages a list of Polylines with integrated clipping (clipLineToCenteredRect) and bounding box computation
+ - processing_xlib: switched to PolylineGroup for drawing and bbox — clipping logic no longer duplicated in sketch
+ - processing_xlib: buildLines() generates N polylines with random point count (nb_points_min to nb_points_max) on the ellipse
+ - processing_xlib: replaced nb_lines with nb_polylines, nb_points_min, nb_points_max parameters
+
+ ## [2.2.18] - 2026-05-10
+ - processing_xlib: bbox calculated from actual visible content (clipped segments) instead of raw clip rect
+ - processing_xlib: shouldRotate now based on real visible content → correct orientation with clipping active
+ - processing_xlib: page.changed triggers buildLines() so bbox/scale update when clip dimensions change
+ - processing_xlib: draw() uses clipLineToCenteredRect() when clipping is active
+ - processing_xlib: debug clip rect draw available (commented out) in draw()
+
+ ## [2.2.17] - 2026-05-10
+ - xLib_ExportUtils: export canvas now uses real paper dimensions (A4/A3/A2) instead of screen window size
+ - xLib_FileUI: translate(W/2, H/2) applied to PGraphics in export mode to centre content, matching screen mode
+ - xLib_FileUI: export scale and rotation recalculated at export time (not cached from buildLines) so margin/format changes are always reflected
+ - xLib_FileUI: stroke colour applied to PGraphics in export mode
+ - processing_xlib: buildLines() now computes BoundingBox and calls file_ui.updateExportScale(bbox)
+ - processing_xlib: draw() uses current_graphics.line() instead of bare line() so SVG/PDF output is not empty
+ - xLib_ExportUtils: printExportDebugInfo() extended with margin, canvas size and usable area
+
+ ## [2.2.16] - 2026-05-10
+ - processing_xlib: added standalone example sketch to test xLib independently
+  - DataCircle — draws random chord lines inscribed in an ellipse (nb_lines, circle_size, aspect_ratio, seed)
+  - CircleGUI — three sliders: Nb Lines, Circle Size, Aspect Ratio (0.1→5.0; 1.0 = circle, >1 horizontal, <1 vertical)
+  -  DataGUI — three tabs: Files, Style, Circle
+  -  Settings/default.json — 100 lines, size 400, aspect ratio 1.0, black background / white lines
 
  ## [2.2.15] - 2026-05-10
  - xLib_FileUI: FileGUI constructor takes optional boolean show_clipping (default false) — hides clipping controls in projects that don't use it
