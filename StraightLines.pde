@@ -79,7 +79,7 @@ class StraightLines extends LineMode
 
   void buildLines(ImageLinesGenerator generator)
   {
-    generator.lines.clear();
+    generator.group.clear();
 
     float cos_x = cos(radians(line_data.direction));
     float sin_x = sin(radians(line_data.direction));
@@ -110,7 +110,7 @@ class StraightLines extends LineMode
       while (advance_forward <= radius*2)
       {
         PVector pA_new = new PVector(start_pos.x + forward.x * advance_forward, start_pos.y + forward.y * advance_forward);
-        line = generator.addSegmentToLine(line, pA.x, pA.y, pA_new.x, pA_new.y);
+        line.addPoint(pA_new);
         pA = pA_new;
         advance_forward += data_lines.precision;
       }
@@ -119,7 +119,7 @@ class StraightLines extends LineMode
 
       if (line.points.size() >= 2)
       {
-        generator.lines.add(line);
+        generator.group.add(line);
         generator.current_group_id++;  // Next line gets next group ID
       }
     }

@@ -39,6 +39,7 @@ ControlP5 cp5;
 void setup()
 {
   size(1200, 800);
+  pixelDensity(1);
 
   data = new ImgProcData();
   dataGui = new DataGUI(data);
@@ -80,8 +81,7 @@ void draw()
   if (data.any_change())
   {
     generator.buildLines();
-    generator.lines = generator.clipLines();  // Replace with clipped lines
-    threshold_filter.buildLines(generator.lines, data.image);
+    threshold_filter.buildLines(generator, data.image);
     data.reset_all_changes();
   }
 

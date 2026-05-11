@@ -36,7 +36,7 @@ class SinusLines extends LineMode
   {
     this.generator = generator;
 
-    generator.lines.clear();
+    generator.group.clear();
 
     float radius = sinus_line.size;
     float spacing = data_lines.lines_spacing;
@@ -73,7 +73,7 @@ class SinusLines extends LineMode
         PVector pA = new PVector(
           forward.x * x_local + right.x * y_local,
           forward.y * x_local + right.y * y_local);
-        line = generator.addSegmentToLine(line, pA_prev.x, pA_prev.y, pA.x, pA.y);
+        line.addPoint(pA);
         pA_prev = pA;
         advance_forward += data_lines.precision;
       }
@@ -82,7 +82,7 @@ class SinusLines extends LineMode
 
       if (line.points.size() >= 2)
       {
-        generator.lines.add(line);
+        generator.group.add(line);
         generator.current_group_id++;  // Next line gets next group ID
       }
     }

@@ -294,23 +294,23 @@ class ThresholdFilter extends ImageLinesGenerator
 
   void buildLines(ImageLinesGenerator source_generator, DataImage image)
   {
-    buildLines(source_generator.lines, image);
+    buildLines(source_generator.group, image);
   }
 
-  void buildLines(ArrayList<ImageLine> source_lines, DataImage image)
+  void buildLines(PolylineGroup source_group, DataImage image)
   {
     //println("ThresholdFilter. buildLines");
 
-    lines.clear();
+    group.clear();
 
     int direction_index = 1;
     int threshold_index = 0;
     int current_group_id = -1;
     float threshold = 0;
 
-    for (int i_line = 0; i_line < source_lines.size(); i_line++)
+    for (int i_line = 0; i_line < source_group.size(); i_line++)
     {
-      ImageLine source_line = source_lines.get(i_line);
+      ImageLine source_line = (ImageLine) source_group.polylines.get(i_line);
 
       // Only update threshold when we change to a new group
       if (source_line.group_id != current_group_id)

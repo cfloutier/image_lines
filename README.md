@@ -163,6 +163,11 @@ Supports PDF, SVG, and DXF export (plotter-ready).
 
 ## Changelog
 
+### 2026-05-11
+- **Refactoring**: switched `ImageLinesGenerator` to `PolylineGroup` — clipping now delegated to `PolylineGroup.draw()`, removed `clipLines()`, `clipLine()`, `isPointInClipRect()`, `addSegmentToLine()`.
+- **ThresholdFilter**: `buildLines()` now takes `PolylineGroup` instead of `ArrayList<ImageLine>`.
+- **StraightLines / SinusLines / CircleLines**: updated to use `group.add/clear`.
+
 ### 2026-05-10
 - **README**: initial documentation.
 
