@@ -74,7 +74,7 @@ float[] getPaperDimensions(int format_enum)
 
 // Print export debug info (bounding box + scale)
 // Call this only once per export frame
-void printExportDebugInfo(BoundingBox bbox, float scale, int paper_format, int margin_enum, float[] paper_dims)
+void printExportDebugInfo(BoundingBox bbox, float scale, int paper_format)
 {
   String format_name = "UNKNOWN";
   switch(paper_format) {
@@ -83,20 +83,12 @@ void printExportDebugInfo(BoundingBox bbox, float scale, int paper_format, int m
     case PAPER_A3: format_name = "A3"; break;
     case PAPER_A2: format_name = "A2"; break;
   }
-  float margin_mm = getMarginMM(margin_enum);
   println("\n>>> EXPORT FRAME <<<");
   println("Paper format: " + format_name);
-  if (paper_dims != null)
-    println("Canvas: " + paper_dims[0] + " x " + paper_dims[1] + " px");
-  println("Margin: " + margin_mm + " mm");
   if (bbox != null) {
     println("BoundingBox: width=" + bbox.getWidth() + ", height=" + bbox.getHeight());
     println("  minX=" + bbox.minX + ", maxX=" + bbox.maxX);
     println("  minY=" + bbox.minY + ", maxY=" + bbox.maxY);
-  }
-  if (paper_dims != null) {
-    float margin_px = margin_mm / 25.4 * EXPORT_DPI;
-    println("Usable area: " + (paper_dims[0] - 2*margin_px) + " x " + (paper_dims[1] - 2*margin_px) + " px");
   }
   println("Export scale: " + scale);
 }

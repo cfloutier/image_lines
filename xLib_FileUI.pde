@@ -30,6 +30,8 @@ class FileGUI extends GUIPanel
   float export_scale = 1.0;
   boolean export_should_rotate = false;
 
+  int last_save_duration = -1;
+
   FileGUI(DataGlobal data)
   {
     this(data, false);
@@ -164,20 +166,24 @@ class FileGUI extends GUIPanel
   void LoadJson()
   {
     println("LoadJson ");
+    stop_compute = true;
     selectInput("Select data file ", "loadSelected", dataFile("../Settings/default.json")  );
   }
 
   void SaveJson()
   {
     println("SaveJson ");
-
+    stop_compute = true;
     selectInput("Save data file ", "saveSelected", dataFile(default_path()));
   }
 
   void Save()
   {
     if (data.settings_path != "")
+    {
+      stop_compute = true;
       data.SaveSettings(data.settings_path);
+    }
   }
 
   void ExportPDF()
@@ -272,7 +278,9 @@ void loadSelected(File selection)
 }
 
 boolean _record = false;
+boolean stop_compute = false; // interrompt le calcul en cours lors d'un load/save
 int mode  = 0;
+long _record_start_millis = 0;
 
 String export_fileName = "";
 void ExportPDF()
@@ -285,6 +293,7 @@ void ExportPDF()
 void ExportDXF()
 {
   _record = true;
+  data.changed = true;
   mode = 1;
 }
 
@@ -310,9 +319,8 @@ void start_draw()
     if (name == "")
       name = "default";
 
-    float[] paper_dims = getPaperDimensions(data.page.paper_format);
-    float newWidth   = (paper_dims != null) ? paper_dims[0] : width;
-    float newheight  = (paper_dims != null) ? paper_dims[1] : height;
+    float newWidth = width ;
+    float newheight = height ;
 
     // Add paper format to filename
     String format_suffix = "";
@@ -338,38 +346,23 @@ void start_draw()
       current_graphics = createGraphics((int)newWidth, (int)newheight, SVG, export_fileName);
     }
 
-    println("Exported to " + export_fileName);
+    println("Saving file in progress... please wait. " + export_fileName);
+    _record_start_millis = System.currentTimeMillis();
 
     data.setSize(newWidth, newheight);
 
     current_graphics.beginDraw();
     
     
-    // Recalculate scale at export time (margin/format may have changed since buildLines)
-    boolean shouldRotate = shouldRotateForExport(file_ui.last_bbox);
-    file_ui.export_should_rotate = shouldRotate;
-    float active_scale;
-    if (data.page.paper_format != PAPER_NONE) {
-      active_scale = calculateExportScale(file_ui.last_bbox, data.page.paper_format, data.page.margin, shouldRotate);
-      file_ui.export_scale = active_scale;
-    } else {
-      active_scale = data.page.global_scale;
-    }
-    printExportDebugInfo(file_ui.last_bbox, active_scale, data.page.paper_format, data.page.margin, getPaperDimensions(data.page.paper_format));
+    // Calculate active scale for export
+    float active_scale = (data.page.paper_format != PAPER_NONE) ? file_ui.export_scale : data.page.global_scale;
+    printExportDebugInfo(file_ui.last_bbox, active_scale, data.page.paper_format);
 
     // Apply transformations to current_graphics (PDF/SVG/DXF)
     current_graphics.pushMatrix();
-    current_graphics.stroke(data.style.lineColor.col);
     current_graphics.strokeWeight(data.style.lineWidth * active_scale);
-    // Centre the content on the canvas (mirrors screen mode's translate(width/2, height/2))
-    current_graphics.translate(newWidth / 2, newheight / 2);
     current_graphics.scale(active_scale, active_scale);
-    // Fine-centre using bbox midpoint when available
-    if (file_ui.last_bbox != null) {
-      float cx = (file_ui.last_bbox.minX + file_ui.last_bbox.maxX) / 2;
-      float cy = (file_ui.last_bbox.minY + file_ui.last_bbox.maxY) / 2;
-      current_graphics.translate(-cx, -cy);
-    }
+    
     // Rotate only if drawing is landscape-oriented (wider than tall)
     if (file_ui.export_should_rotate) {
       current_graphics.rotate(-PI/2);
@@ -403,6 +396,9 @@ void end_draw()
     current_graphics.popMatrix();  // Close the pushMatrix from start_draw
     current_graphics.dispose();
     current_graphics.endDraw();
+    int duration = (int)(System.currentTimeMillis() - _record_start_millis);
+    file_ui.last_save_duration = duration;
+    println("Save completed in " + StringUtils.formatDuration(duration));
     _record = false;
   } else {
     popMatrix();  // Close the pushMatrix from start_draw

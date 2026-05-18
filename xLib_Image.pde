@@ -11,7 +11,7 @@ class DataImage extends GenericData
   int   Blur = 2;
   int Contrast = 0;
 
-  PImage blurred_image = null;
+  PImage transformed_image = null;
   boolean reset_image = true;
 
   PImage image = null;
@@ -41,29 +41,36 @@ class DataImage extends GenericData
 
   void buildBlurredImage()
   {
+    // Si l'image n'est pas chargée (ex: après LoadJson depuis le thread dialog),
+    // on la recharge ici depuis le draw thread pour éviter les problèmes
+    // de visibilité mémoire entre threads.
+    if (image == null && source_file != null && !source_file.equals(""))
+    {
+      setImage(source_file);
+    }
+
     if (image == null)
     {
-      //println("no image ?? ");
       return;
     }
 
-    if (this.changed || blurred_image == null || reset_image)
+    if (this.changed || transformed_image == null || reset_image)
     {
       println("Rebuild blurred ----------------");
 
 
 
-      blurred_image = image.copy();
+      transformed_image = image.copy();
 
-      if (blurred_image == null)
+      if (transformed_image == null)
       {
         println("Error building blurred image");
         return;
       }
 
-      blurred_image.resize((int)Width, (int)Height());
-      blurred_image.filter(BLUR, Blur);
-      blurred_image.loadPixels();
+      transformed_image.resize((int)Width, (int)Height());
+      transformed_image.filter(BLUR, Blur);
+      transformed_image.loadPixels();
 
       changed = true;
 
@@ -73,10 +80,10 @@ class DataImage extends GenericData
 
   void draw(float imageAlpha)
   {
-    if (blurred_image != null && imageAlpha > 0)
+    if (transformed_image != null && imageAlpha > 0)
     {
       // draw centered
-      PImage image =  this.blurred_image;
+      PImage image =  this.transformed_image;
 
       float image_w = image.width;
       float image_h = image.height;
@@ -97,34 +104,38 @@ class DataImage extends GenericData
 
   float getPixelValue(PVector point)
   {
-    if (blurred_image == null)
+    if (transformed_image == null)
     {
       buildBlurredImage();
     }
 
-    if (blurred_image == null)
+    if (transformed_image == null)
       return -1;
 
-    int x_pos = int(point.x + blurred_image.width / 2);
-    int y_pos = int(point.y + blurred_image.height / 2);
+    int x_pos = int(point.x + transformed_image.width / 2);
+    int y_pos = int(point.y + transformed_image.height / 2);
 
-    if (x_pos < 0 || x_pos >= blurred_image.width ||
-      y_pos < 0 || y_pos >= blurred_image.height)
+    if (x_pos < 0 || x_pos >= transformed_image.width ||
+      y_pos < 0 || y_pos >= transformed_image.height)
 
       return -1;
 
-    int loc =  x_pos + y_pos*blurred_image.width;
+    int loc =  x_pos + y_pos*transformed_image.width;
 
-    float r = red(blurred_image.pixels[loc]);
-    float g = green(blurred_image.pixels[loc]);
-    float b = blue(blurred_image.pixels[loc]);
+    float r = red(transformed_image.pixels[loc]);
+    float g = green(transformed_image.pixels[loc]);
+    float b = blue(transformed_image.pixels[loc]);
 
     return (r+ g + b ) /3;
   }
 
   public void LoadJson(JSONObject json) {
     super.LoadJson(json);
-    setImage(source_file);
+    // Ne pas appeler setImage() ici (appel depuis EDT / thread dialog).
+    // On force image=null + reset_image pour que buildBlurredImage()
+    // recharge l'image depuis le draw thread lors de la prochaine frame.
+    image       = null;
+    reset_image = true;
   }
 
   // void LoadJson(JSONObject src)
