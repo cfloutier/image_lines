@@ -212,7 +212,7 @@ class FileGUI extends GUIPanel
     last_bbox = bbox;
     export_should_rotate = shouldRotateForExport(bbox);
     export_scale = calculateExportScale(bbox, data.page.paper_format, data.page.margin, export_should_rotate);
-    println("[FileUI] updateExportScale -> scale=" + export_scale + " rotate=" + export_should_rotate + " paper=" + data.page.paper_format);
+    // println("[FileUI] updateExportScale -> scale=" + export_scale + " rotate=" + export_should_rotate + " paper=" + data.page.paper_format);
   }
 }
 
