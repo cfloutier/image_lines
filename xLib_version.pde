@@ -9,11 +9,6 @@ String get_xlib_version()
  # CHANGELOG
 
  ## [2.3.0] - 2026-05-22
- - xLib_Image: draw toggle and imageAlpha moved to DataImage (saved/loaded via JSON)
- - xLib_Image: blackAndWhite toggle — applies GRAY filter during buildTransformedImage
- - xLib_Image: levels adjustment (levelsMin, levelsMax, levelsGamma) applied pixel-by-pixel; gamma slider uses -1..1 mapped via pow(5,x)
- - xLib_Image: Reset Levels button restores default level values
- - xLib_Image: buildBlurredImage renamed to buildTransformedImage
  - xLib_FileUI: ScaleSlider caption label aligned consistently with other sliders (marginTop/marginLeft)
  - image_lines: Image tab opened by default
 
@@ -23,7 +18,6 @@ String get_xlib_version()
  - xLib_Image: levels adjustment (levelsMin, levelsMax, levelsGamma) applied pixel-by-pixel; gamma uses -1..1 slider mapped via pow(5,x)
  - xLib_Image: Reset Levels button restores default level values
  - xLib_Image: buildBlurredImage renamed to buildTransformedImage
- - xLib_Image: added draw toggle and imageAlpha to DataImage — both saved/loaded via JSON; GUI controls update data fields without triggering data.changed
 
  ## [2.2.19] - 2026-05-22
  - processing_xlib: création du fichier .github/copilot-instructions.md avec le contexte xLib (workflow, projets synchronisés, scripts)
