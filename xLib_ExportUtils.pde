@@ -7,13 +7,13 @@ final int PAPER_A2 = 3;
 // Margin constants (in mm)
 final int MARGIN_0CM = 0;
 final int MARGIN_1CM = 1;
-final int MARGIN_3CM = 2;
-final int MARGIN_10CM = 3;
+final int MARGIN_2CM = 2;
+final int MARGIN_3CM = 3;
 
 final float MARGIN_0CM_MM = 0;
 final float MARGIN_1CM_MM = 10;
 final float MARGIN_3CM_MM = 30;
-final float MARGIN_10CM_MM = 100;
+final float MARGIN_2CM_MM = 20;
 
 // Paper dimensions in mm
 final float A4_WIDTH_MM = 210;
@@ -86,8 +86,8 @@ float getMarginMM(int margin_enum)
   switch(margin_enum) {
     case MARGIN_0CM: return MARGIN_0CM_MM;
     case MARGIN_1CM: return MARGIN_1CM_MM;
+    case MARGIN_2CM: return MARGIN_2CM_MM;
     case MARGIN_3CM: return MARGIN_3CM_MM;
-    case MARGIN_10CM: return MARGIN_10CM_MM;
     default: return MARGIN_3CM_MM;
   }
 }

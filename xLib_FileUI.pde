@@ -9,7 +9,7 @@ class DataPage extends GenericData
   float clip_height = 600;
   
   int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2
-  int margin = MARGIN_3CM;  // 0: 1cm, 1: 3cm, 2: 10cm
+  int margin = MARGIN_3CM;  // 0: 0cm, 1: 1cm, 2: 2cm, 3: 3cm
 
   DataPage() {
     super("Page");
@@ -150,8 +150,8 @@ class FileGUI extends GUIPanel
     ArrayList<String> margins = new ArrayList<String>();
     margins.add("0 cm");
     margins.add("1 cm");
+    margins.add("2 cm");
     margins.add("3 cm");
-    margins.add("10 cm");
     margin_radio = addRadio("margin", margins);
   }
 
