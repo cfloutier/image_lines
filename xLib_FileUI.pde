@@ -107,15 +107,16 @@ class FileGUI extends GUIPanel
 
     nextLine();
     addLabel("Page : ");
-    nextLine();
     scale_slider = new ScaleSlider(cp5, "Scale");
 
     scale_slider.setPosition(xPos, yPos)
       .setSize(widthCtrl, heightCtrl)
       .setRange(-9, 9)
       .moveTo("Files")
-      .setValue(0)
-      .getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(0);
+      .setValue(0);
+
+    scale_slider.getCaptionLabel().getStyle().marginTop = 0;
+    scale_slider.getCaptionLabel().getStyle().marginLeft = -getWidthLabel("Scale") - 8;
 
     xPos += widthCtrl + 10;
 
@@ -144,7 +145,7 @@ class FileGUI extends GUIPanel
     paper_formats.add("A2");
     paper_format_radio = addRadio("paper_format", paper_formats);
     
-    nextLine();
+    // nextLine();
     addLabel("Margins :");
     ArrayList<String> margins = new ArrayList<String>();
     margins.add("0 cm");
@@ -236,9 +237,6 @@ void saveSelected(File selection)
   }
 }
 
-
-// Slider slider_crop_width;
-// Slider slider_crop_height;
 
 //subclass slider
 public class ScaleSlider extends Slider {
@@ -352,7 +350,6 @@ void start_draw()
     data.setSize(newWidth, newheight);
 
     current_graphics.beginDraw();
-    
     
     // Calculate active scale for export
     float active_scale = (data.page.paper_format != PAPER_NONE) ? file_ui.export_scale : data.page.global_scale;

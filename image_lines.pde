@@ -75,8 +75,9 @@ void draw()
 {
   start_draw();
 
-  data.image.buildBlurredImage();
-  data.image.draw(dataGui.images_ui.imageAlpha);
+  data.image.buildTransformedImage();
+  if (data.image.draw)
+    data.image.draw(data.image.imageAlpha);
 
   if (data.any_change())
   {

@@ -29,6 +29,6 @@ class DataGUI extends MainPanel
 
     super.Init();
 
-    cp5.getTab("Lines").bringToFront();
+    cp5.getTab("Image").bringToFront();
   }
 }

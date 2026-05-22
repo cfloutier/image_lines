@@ -10,13 +10,16 @@
     "margin": 2,
     "clip_height": 406.6666564941406,
     "paper_format": 0,
-    "global_scale": 0.6785714030265808
+    "global_scale": 0.804347813129425
   },
   "Image": {
     "reset_image": false,
+    "imageAlpha": 255,
     "Blur": 1,
+    "draw": true,
     "Width": 1334,
     "Contrast": 0,
+    "blackAndWhite": true,
     "source_file": "eye3.png"
   },
   "Lines": {

@@ -7,9 +7,17 @@ class DataImage extends GenericData
 
   String source_file = "eye.jpg";
 
+  boolean draw = true;
+  float imageAlpha = 0;
+
   float Width = 500;
   int   Blur = 2;
   int Contrast = 0;
+  boolean blackAndWhite = false;
+
+  float levelsMin = 0;
+  float levelsMax = 255;
+  float levelsGamma = 0;
 
   PImage transformed_image = null;
   boolean reset_image = true;
@@ -25,7 +33,7 @@ class DataImage extends GenericData
     try {
       String file_path = dataFile(source_file).getAbsolutePath();
       image = loadImage(file_path);
-      image.filter(GRAY);
+      // image.filter(GRAY);
     }
     catch(Exception e) {
       image = null;
@@ -39,7 +47,7 @@ class DataImage extends GenericData
     //println("Loaded source file " + source_file);
   }
 
-  void buildBlurredImage()
+  void buildTransformedImage()
   {
     // Si l'image n'est pas chargée (ex: après LoadJson depuis le thread dialog),
     // on la recharge ici depuis le draw thread pour éviter les problèmes
@@ -56,9 +64,7 @@ class DataImage extends GenericData
 
     if (this.changed || transformed_image == null || reset_image)
     {
-      println("Rebuild blurred ----------------");
-
-
+      println("----------------- Rebuild transformed image ----------------");
 
       transformed_image = image.copy();
 
@@ -69,12 +75,35 @@ class DataImage extends GenericData
       }
 
       transformed_image.resize((int)Width, (int)Height());
+      if (blackAndWhite)
+        transformed_image.filter(GRAY);
       transformed_image.filter(BLUR, Blur);
       transformed_image.loadPixels();
+      applyLevels(transformed_image);
+      transformed_image.updatePixels();
 
       changed = true;
-
       reset_image = false;
+    }
+  }
+
+  void applyLevels(PImage img)
+  {
+    float inMin  = constrain(levelsMin, 0, 254);
+    float inMax  = constrain(levelsMax, inMin + 1, 255);
+    float range  = inMax - inMin;
+    float gammaInv = 1.0 / pow(5.0, levelsGamma);
+
+    for (int i = 0; i < img.pixels.length; i++)
+    {
+      color c = img.pixels[i];
+      float r = constrain((red(c)   - inMin) / range, 0, 1);
+      float g = constrain((green(c) - inMin) / range, 0, 1);
+      float b = constrain((blue(c)  - inMin) / range, 0, 1);
+      r = pow(r, gammaInv) * 255;
+      g = pow(g, gammaInv) * 255;
+      b = pow(b, gammaInv) * 255;
+      img.pixels[i] = color(r, g, b, alpha(c));
     }
   }
 
@@ -106,7 +135,7 @@ class DataImage extends GenericData
   {
     if (transformed_image == null)
     {
-      buildBlurredImage();
+      buildTransformedImage();
     }
 
     if (transformed_image == null)
@@ -132,37 +161,12 @@ class DataImage extends GenericData
   public void LoadJson(JSONObject json) {
     super.LoadJson(json);
     // Ne pas appeler setImage() ici (appel depuis EDT / thread dialog).
-    // On force image=null + reset_image pour que buildBlurredImage()
+    // On force image=null + reset_image pour que buildTransformedImage()
     // recharge l'image depuis le draw thread lors de la prochaine frame.
     image       = null;
     reset_image = true;
   }
 
-  // void LoadJson(JSONObject src)
-  // {
-  //   if (src == null)
-  //     return;
-
-  //   Width = src.getFloat("Width", Width);
-  //   ImageAlpha = src.getFloat("ImageAlpha", ImageAlpha);
-  //   Blur = src.getInt("Blur", Blur);
-  //   Contrast = src.getInt("Contrast", Contrast);
-
-  //   setImage(src.getString("source_file", source_file));
-  // }
-
-  // JSONObject SaveJson()
-  // {
-  //   JSONObject dest = new JSONObject();
-
-  //   dest.setFloat("Width", Width);
-  //   dest.setString("source_file", source_file);
-  //   dest.setFloat("ImageAlpha", ImageAlpha);
-  //   dest.setInt("Blur", Blur);
-  //   dest.setFloat("Contrast", Contrast);
-
-  //   return dest;
-  // }
 }
 
 ImageGUI _image_gui = null;
@@ -170,7 +174,6 @@ ImageGUI _image_gui = null;
 class ImageGUI extends GUIPanel
 {
   DataImage data;
-  float imageAlpha = 0; // GUI-only : n'affecte pas data.changed
 
   public ImageGUI(DataImage data)
   {
@@ -196,9 +199,15 @@ class ImageGUI extends GUIPanel
       file_Label.setText(data.source_file);
   }
 
+  Toggle draw;
+  Toggle blackAndWhite;
   Slider Width;
   Slider ImageAlpha;
   Slider Blur;
+  Slider levelsMin;
+  Slider levelsMax;
+  Slider levelsGamma;
+  Button resetLevels_bt;
   Button select_bt;
 
   Textlabel file_Label;
@@ -213,25 +222,62 @@ class ImageGUI extends GUIPanel
     file_Label = inlineLabel("File Label", 200);
 
     nextLine();
+    draw = addToggle("draw", "Draw");
+    blackAndWhite = addToggle("blackAndWhite", "Black & White");
+    nextLine();
     Width = addSlider("Width", "Width", 200, 2000);
     ImageAlpha = addSlider("ImageAlpha", "Image Alpha", this, 0, 255);
     nextLine();
+    addLabel("add Blur ");
     Blur = addIntSlider("Blur", "Blur", 1, 20);
+    nextLine();
+    nextLine();
+    inlineLabel("Gamma Correction", 200);
+    resetLevels_bt = addButton("Reset Levels");
+    resetLevels_bt.plugTo(this, "ResetLevels");
+    nextLine();
+    levelsMin   = addSlider("levelsMin",   "Levels Min",   0, 254);
+    levelsGamma = addSlider("levelsGamma", "Levels Gamma", -1.0, 1.0);
+    levelsMax   = addSlider("levelsMax",   "Levels Max",   1, 255);
+
+
   }
 
   void setGUIValues()
   {
+    draw.setValue(data.draw ? 1 : 0);
+    blackAndWhite.setValue(data.blackAndWhite ? 1 : 0);
     Width.setValue(data.Width);
-    ImageAlpha.setValue(imageAlpha);
+    ImageAlpha.setValue(data.imageAlpha);
     Blur.setValue(data.Blur);
+    levelsMin.setValue(data.levelsMin);
+    levelsMax.setValue(data.levelsMax);
+    levelsGamma.setValue(data.levelsGamma);
+  }
+
+  void ResetLevels()
+  {
+    data.levelsMin   = new DataImage().levelsMin;
+    data.levelsMax   = new DataImage().levelsMax;
+    data.levelsGamma = new DataImage().levelsGamma;
+    data.changed     = true;
+    levelsMin.setValue(data.levelsMin);
+    levelsMax.setValue(data.levelsMax);
+    levelsGamma.setValue(data.levelsGamma);
   }
 
   public void controlEvent(ControlEvent theEvent)
   {
     if (theEvent.isController() && theEvent.getController() == ImageAlpha)
     {
-      // GUI-only : pas de data.changed
-      imageAlpha = ImageAlpha.getValue();
+      // display-only : pas de data.changed
+      data.imageAlpha = ImageAlpha.getValue();
+      return;
+    }
+    if (theEvent.isController() && theEvent.getController() == draw)
+    {
+      // display-only : pas de data.changed
+      data.draw = draw.getValue() > 0.5;
       return;
     }
     super.controlEvent(theEvent);
