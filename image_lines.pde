@@ -83,6 +83,7 @@ void draw()
   {
     generator.buildLines();
     threshold_filter.buildLines(generator, data.image);
+    file_ui.updateExportScale(threshold_filter.group.getBoundingBox(data.page.clipping, data.page.clip_width, data.page.clip_height));
     data.reset_all_changes();
   }
 

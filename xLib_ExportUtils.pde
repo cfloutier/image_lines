@@ -4,10 +4,6 @@ final int PAPER_A4 = 1;
 final int PAPER_A3 = 2;
 final int PAPER_A2 = 3;
 
-// DPI for export - adjust this value to match your actual paper dimensions
-// Start with 96.0 (screen DPI) and adjust based on export results
-final float EXPORT_DPI = 135.0;
-
 // Margin constants (in mm)
 final int MARGIN_0CM = 0;
 final int MARGIN_1CM = 1;
@@ -26,6 +22,9 @@ final float A3_WIDTH_MM = 297;
 final float A3_HEIGHT_MM = 420;
 final float A2_WIDTH_MM = 420;
 final float A2_HEIGHT_MM = 594;
+
+// SVG unit conversion: 1 inch = 96px (SVG standard, fixed - not a calibration value)
+float mmToSvgPx(float mm) { return mm * 96.0 / 25.4; }
 
 // Calculate bounding box of all drawn lines
 class BoundingBox
@@ -46,30 +45,16 @@ class BoundingBox
   }
 }
 
-// Get paper dimensions in pixels based on format and DPI
-// Returns [width, height] in pixels
+// Get paper dimensions in mm based on format (portrait orientation)
+// Returns [width, height] in mm
 float[] getPaperDimensions(int format_enum)
 {
-  float[] dims = new float[2];
-  
   switch(format_enum) {
-    case PAPER_A4:
-      dims[0] = A4_WIDTH_MM / 25.4 * EXPORT_DPI;   // Convert mm to pixels
-      dims[1] = A4_HEIGHT_MM / 25.4 * EXPORT_DPI;
-      break;
-    case PAPER_A3:
-      dims[0] = A3_WIDTH_MM / 25.4 * EXPORT_DPI;
-      dims[1] = A3_HEIGHT_MM / 25.4 * EXPORT_DPI;
-      break;
-    case PAPER_A2:
-      dims[0] = A2_WIDTH_MM / 25.4 * EXPORT_DPI;
-      dims[1] = A2_HEIGHT_MM / 25.4 * EXPORT_DPI;
-      break;
-    default:  // PAPER_NONE or invalid
-      return null;
+    case PAPER_A4: return new float[]{ A4_WIDTH_MM, A4_HEIGHT_MM };
+    case PAPER_A3: return new float[]{ A3_WIDTH_MM, A3_HEIGHT_MM };
+    case PAPER_A2: return new float[]{ A2_WIDTH_MM, A2_HEIGHT_MM };
+    default: return null;
   }
-  
-  return dims;
 }
 
 // Print export debug info (bounding box + scale)
@@ -135,12 +120,10 @@ float calculateExportScale(BoundingBox bbox, int paper_format, int margin, boole
     bbox_height = temp;
   }
   
-  // Get margin in mm and convert to pixels
+  // Usable paper area: subtract margins (in mm) then convert to SVG px
   float margin_mm = getMarginMM(margin);
-  float margin_px = margin_mm / 25.4 * EXPORT_DPI;  // Convert mm to pixels
-  
-  float usable_width = paper_dims[0] - 2 * margin_px;
-  float usable_height = paper_dims[1] - 2 * margin_px;
+  float usable_width = mmToSvgPx(paper_dims[0] - 2 * margin_mm);
+  float usable_height = mmToSvgPx(paper_dims[1] - 2 * margin_mm);
   
   // Calculate scale to fit both dimensions
   float scale_x = (bbox_width > 0) ? usable_width / bbox_width : 1.0;

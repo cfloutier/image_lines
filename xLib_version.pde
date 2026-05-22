@@ -1,12 +1,18 @@
 String get_xlib_version()
 {
-  return "2.3.0";
+  return "2.4.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [2.4.0] - 2026-05-22
+ - xLib_ExportUtils: removed EXPORT_DPI — getPaperDimensions() now returns mm (physical units)
+ - xLib_ExportUtils: added mmToSvgPx() — mm to SVG px conversion using fixed standard (96px/inch, not a calibration value)
+ - xLib_FileUI: SVG/PDF canvas sized via mmToSvgPx() instead of a configurable DPI
+ - Fix: A3 export was producing A2 output in Inkscape (EXPORT_DPI=135 ≈ 96×√2 caused one paper size offset)
 
  ## [2.3.0] - 2026-05-22
  - xLib_FileUI: ScaleSlider caption label aligned consistently with other sliders (marginTop/marginLeft)

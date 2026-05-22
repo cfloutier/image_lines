@@ -212,6 +212,7 @@ class FileGUI extends GUIPanel
     last_bbox = bbox;
     export_should_rotate = shouldRotateForExport(bbox);
     export_scale = calculateExportScale(bbox, data.page.paper_format, data.page.margin, export_should_rotate);
+    println("[FileUI] updateExportScale -> scale=" + export_scale + " rotate=" + export_should_rotate + " paper=" + data.page.paper_format);
   }
 }
 
@@ -317,8 +318,15 @@ void start_draw()
     if (name == "")
       name = "default";
 
-    float newWidth = width ;
-    float newheight = height ;
+    float newWidth = width;
+    float newheight = height;
+
+    // Si un format papier est sélectionné, utiliser ses dimensions pour le canvas SVG/PDF
+    if (data.page.paper_format != PAPER_NONE) {
+      float[] paper_dims_mm = getPaperDimensions(data.page.paper_format);
+      newWidth = mmToSvgPx(paper_dims_mm[0]);
+      newheight = mmToSvgPx(paper_dims_mm[1]);
+    }
 
     // Add paper format to filename
     String format_suffix = "";
@@ -347,20 +355,19 @@ void start_draw()
     println("Saving file in progress... please wait. " + export_fileName);
     _record_start_millis = System.currentTimeMillis();
 
-    data.setSize(newWidth, newheight);
-
     current_graphics.beginDraw();
-    
+
     // Calculate active scale for export
     float active_scale = (data.page.paper_format != PAPER_NONE) ? file_ui.export_scale : data.page.global_scale;
     printExportDebugInfo(file_ui.last_bbox, active_scale, data.page.paper_format);
 
-    // Apply transformations to current_graphics (PDF/SVG/DXF)
     current_graphics.pushMatrix();
     current_graphics.strokeWeight(data.style.lineWidth * active_scale);
+    // Centrage sur le canvas papier : le dessin est en coordonnées centrées sur (0,0)
+    if (data.page.paper_format != PAPER_NONE) {
+      current_graphics.translate(newWidth / 2, newheight / 2);
+    }
     current_graphics.scale(active_scale, active_scale);
-    
-    // Rotate only if drawing is landscape-oriented (wider than tall)
     if (file_ui.export_should_rotate) {
       current_graphics.rotate(-PI/2);
     }
