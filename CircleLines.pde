@@ -106,7 +106,7 @@ class CircleLines extends LineMode
     
     generator.current_line.addPoint(start_pos);
 
-    PVector prev_pos = start_pos;
+    PVector prev_pos = new PVector();
     angle += delta_angle;
     while (angle < 2*PI)
     {

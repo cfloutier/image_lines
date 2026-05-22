@@ -7,13 +7,14 @@
   "Page": {
     "clipping": true,
     "clip_width": 686.6666870117188,
+    "margin": 2,
     "clip_height": 406.6666564941406,
-    "global_scale": 0.5263158679008484
+    "paper_format": 0,
+    "global_scale": 0.6785714030265808
   },
   "Image": {
     "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
+    "Blur": 1,
     "Width": 1334,
     "Contrast": 0,
     "source_file": "eye3.png"
@@ -25,11 +26,9 @@
       "size": 587.1000366210938,
       "direction_sinus": -57.599998474121094
     },
-    "canvas_width": 886,
     "lines_spacing": 0.6266666650772095,
     "nb_lines": 1450,
     "precision": 3.5973334312438965,
-    "canvas_height": 379,
     "draw": false,
     "type": 0,
     "CircleLines": {
@@ -39,7 +38,6 @@
       "center_y": 0,
       "center_x": 40
     },
-    "use_canvas": true,
     "StraightLines": {
       "size": 454.433349609375,
       "direction": 14.400009155273438
@@ -54,7 +52,7 @@
     "threshold_10": 217.0216064453125,
     "threshold_1": 0,
     "black": true,
-    "draw": true,
+    "draw": false,
     "min_value": 0,
     "use_power": true,
     "threshold_6": 129.1999969482422,
