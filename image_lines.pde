@@ -40,6 +40,7 @@ void setup()
 {
   size(1200, 800);
   pixelDensity(1);
+  surface.setResizable(true);
 
   data = new ImgProcData();
   dataGui = new DataGUI(data);
@@ -58,8 +59,6 @@ void setup()
   data.LoadSettings("./Settings/test_lines.json");
 
   dataGui.setGUIValues();
-
-  surface.setResizable(true);
 }
 
 void setupControls()
