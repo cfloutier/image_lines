@@ -213,6 +213,7 @@ class FileGUI extends GUIPanel
       String filepath = sketchPath("Export/" + name + fmt + "_"
         + year() + "-" + month() + "-" + day()
         + "_" + hour() + "-" + minute() + "-" + second() + ".svg");
+      println("[SVG] " + filepath);
       long t0 = System.currentTimeMillis();
       writeSVGDirect(filepath, export_group, page_data.paper_format);
       last_save_duration = (int)(System.currentTimeMillis() - t0);
