@@ -30,9 +30,12 @@ class FileGUI extends GUIPanel
   float export_scale = 1.0;
   boolean export_should_rotate = false;
 
-  // Set this to your sketch's PolylineGroup to enable direct SVG export
-  // (bypasses Processing's SVG renderer – faster, with console progress)
-  PolylineGroup export_group = null;
+  // Set one of these in sketch setup() to enable direct SVG export:
+  //   export_group  → PolylineGroup  (spiral, perlin_mountains, image_lines)
+  //   export_shapes → ShapesGroup    (image_dots and projects with dots+polylines)
+  // export_shapes is checked first; falls back to export_group, then Processing renderer.
+  PolylineGroup export_group  = null;
+  ShapesGroup   export_shapes = null;
 
   int last_save_duration = -1;
 
@@ -201,8 +204,10 @@ class FileGUI extends GUIPanel
 
   void ExportSVG()
   {
-    if (export_group != null && export_group.size() > 0 && page_data.paper_format != PAPER_NONE) {
-      // Direct SVG export – bypasses Processing's SVG renderer
+    boolean use_shapes = export_shapes != null && export_shapes.totalCount() > 0 && page_data.paper_format != PAPER_NONE;
+    boolean use_group  = export_group  != null && export_group.size()  > 0 && page_data.paper_format != PAPER_NONE;
+
+    if (use_shapes || use_group) {
       String name = data.name.equals("") ? "default" : data.name;
       String fmt  = "";
       switch (page_data.paper_format) {
@@ -215,7 +220,8 @@ class FileGUI extends GUIPanel
         + "_" + hour() + "-" + minute() + "-" + second() + ".svg");
       println("[SVG] " + filepath);
       long t0 = System.currentTimeMillis();
-      writeSVGDirect(filepath, export_group, page_data.paper_format);
+      if (use_shapes) writeSVGDirect(filepath, export_shapes, page_data.paper_format);
+      else            writeSVGDirect(filepath, export_group,  page_data.paper_format);
       last_save_duration = (int)(System.currentTimeMillis() - t0);
       println("[SVG] Export completed in " + StringUtils.formatDuration(last_save_duration));
     } else {

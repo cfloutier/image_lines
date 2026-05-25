@@ -1,12 +1,19 @@
 String get_xlib_version()
 {
-  return "3.0.0";
+  return "3.1.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.1.0] - 2026-05-25
+ - xLib_ExportUtils: added writeSVGDirect(ShapesGroup) overload — exports dots as zero-length SVG lines with round linecap (AxiDraw convention)
+ - xLib_ShapesGroup: new file — Dot class (PVector pos) and ShapesGroup class (ArrayList<Polyline> + ArrayList<Dot>)
+   Includes draw(), getBoundingBox(), addDot(), addPolyline(), clear(), totalCount(), dotCount(), polylineCount()
+ - xLib_FileUI: added export_shapes (ShapesGroup) field — checked before export_group in ExportSVG()
+ - xLib_ExportUtils: centeredToMM() rotation fixed from -90deg to +90deg (swapped direction)
 
  ## [3.0.0] - 2026-05-25
  - xLib_ExportUtils: added writeSVGDirect() — direct SVG writer bypassing Processing's SVG renderer

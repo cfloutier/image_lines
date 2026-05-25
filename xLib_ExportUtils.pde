@@ -221,7 +221,7 @@ float calculateExportScale(BoundingBox bbox, int paper_format, int margin, boole
 float[] centeredToMM(float cx, float cy, float s, float K,
                      float page_cx_mm, float page_cy_mm, boolean rot) {
   float lx = cx, ly = cy;
-  if (rot) { float t = lx; lx = ly; ly = -t; }
+  if (rot) { float t = lx; lx = -ly; ly = t; }
   return new float[]{ lx * s * K + page_cx_mm, ly * s * K + page_cy_mm };
 }
 
@@ -337,4 +337,113 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   out.close();
 
   println("[SVG] Done - " + written + " paths written.");
+}
+
+// Write a ShapesGroup (polylines + dots) directly to an SVG file.
+// Dots are rendered as zero-length lines with round linecap — same stroke-width as polylines.
+// This is the AxiDraw convention: a capped zero-length stroke = filled dot of diameter=stroke-width.
+void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
+  float[] paper_dims = getPaperDimensions(paper_format);
+  if (paper_dims == null) {
+    println("[SVG] Unknown paper format - aborting direct export.");
+    return;
+  }
+
+  final float K         = 25.4 / 96.0;
+  final float w_mm      = paper_dims[0];
+  final float h_mm      = paper_dims[1];
+  final float cx_mm     = w_mm / 2.0;
+  final float cy_mm     = h_mm / 2.0;
+  final float s         = file_ui.export_scale;
+  final boolean rot     = file_ui.export_should_rotate;
+  final float stroke_mm = data.style.lineWidth * s * K;
+
+  final boolean clipping = data.page.clipping;
+  final float   clip_w   = data.page.clip_width;
+  final float   clip_h   = data.page.clip_height;
+
+  BoundingBox bbox = shapes.getBoundingBox(false, 0, 0);
+  float bcx = (bbox.minX + bbox.maxX) / 2.0;
+  float bcy = (bbox.minY + bbox.maxY) / 2.0;
+
+  int total = shapes.totalCount();
+  println("[SVG] Starting direct export - " + shapes.polylineCount() + " polylines, " + shapes.dotCount() + " dots");
+  println("[SVG] Paper: " + (int)w_mm + "x" + (int)h_mm + " mm  |  scale=" +
+          String.format(java.util.Locale.US, "%.4f", s) +
+          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " mm" +
+          (rot ? "  |  rotated -90deg" : ""));
+
+  new java.io.File(sketchPath("Export")).mkdirs();
+  PrintWriter out = createWriter(filepath);
+
+  out.println("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
+  out.println("<svg");
+  out.println("  xmlns=\"http://www.w3.org/2000/svg\"");
+  out.println("  version=\"1.1\"");
+  out.println("  width=\""  + (int)w_mm + "mm\"");
+  out.println("  height=\"" + (int)h_mm + "mm\"");
+  out.println("  viewBox=\"0 0 " + (int)w_mm + " " + (int)h_mm + "\">");
+  out.println("<g stroke=\"#000000\" fill=\"none\"");
+  out.println("   stroke-width=\"" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + "\"");
+  out.println("   stroke-linecap=\"round\" stroke-linejoin=\"round\">");
+
+  float[] clipOut = new float[4];
+  int done = 0, written = 0, last_pct = -1;
+
+  // ── Polylines ──────────────────────────────────────────────────────────────
+  for (Polyline pl : shapes.polylines) {
+    if (pl.size() < 2) { done++; continue; }
+
+    if (!clipping) {
+      out.print("<path d=\"");
+      boolean first = true;
+      for (PVector p : pl.points) {
+        float[] mm = centeredToMM(p.x - bcx, p.y - bcy, s, K, cx_mm, cy_mm, rot);
+        if (first) { out.print(String.format(java.util.Locale.US, "M %.4f,%.4f", mm[0], mm[1])); first = false; }
+        else        { out.print(String.format(java.util.Locale.US, " L %.4f,%.4f", mm[0], mm[1])); }
+      }
+      out.println("\" />");
+      written++;
+    } else {
+      StringBuilder sb = new StringBuilder();
+      int segs = 0;
+      for (int i = 0; i < pl.size() - 1; i++) {
+        PVector a = pl.get(i), b = pl.get(i + 1);
+        float ax = a.x - bcx, ay = a.y - bcy;
+        float bx = b.x - bcx, by = b.y - bcy;
+        if (clipLineToCenteredRect(ax, ay, bx, by, 0, 0, clip_w, clip_h, clipOut)) {
+          float[] p0 = centeredToMM(clipOut[0], clipOut[1], s, K, cx_mm, cy_mm, rot);
+          float[] p1 = centeredToMM(clipOut[2], clipOut[3], s, K, cx_mm, cy_mm, rot);
+          sb.append(String.format(java.util.Locale.US,
+            "M %.4f,%.4f L %.4f,%.4f ", p0[0], p0[1], p1[0], p1[1]));
+          segs++;
+        }
+      }
+      if (segs > 0) { out.println("<path d=\"" + sb.toString().trim() + "\" />"); written++; }
+    }
+
+    done++;
+    int pct = (total > 0) ? (100 * done / total) : 100;
+    if (pct != last_pct && pct % 10 == 0) { println("[SVG]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
+  }
+
+  // ── Dots: zero-length line with round linecap = filled dot (AxiDraw convention) ──
+  for (Dot d : shapes.dots) {
+    float px = d.pos.x - bcx, py = d.pos.y - bcy;
+    if (clipping && !pointInClipRect(px, py, 0, 0, clip_w, clip_h)) continue;
+    float[] mm = centeredToMM(px, py, s, K, cx_mm, cy_mm, rot);
+    out.println(String.format(java.util.Locale.US,
+      "<line x1=\"%.4f\" y1=\"%.4f\" x2=\"%.4f\" y2=\"%.4f\" />",
+      mm[0], mm[1], mm[0] + 0.0001f, mm[1] + 0.0001f));
+    written++;
+    done++;
+    int pct = (total > 0) ? (100 * done / total) : 100;
+    if (pct != last_pct && pct % 10 == 0) { println("[SVG]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
+  }
+
+  out.println("</g>");
+  out.println("</svg>");
+  out.flush();
+  out.close();
+  println("[SVG] Done - " + written + " elements written.");
 }
