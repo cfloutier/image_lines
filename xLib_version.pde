@@ -1,12 +1,23 @@
 String get_xlib_version()
 {
-  return "2.4.0";
+  return "3.0.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.0.0] - 2026-05-25
+ - xLib_ExportUtils: added writeSVGDirect() — direct SVG writer bypassing Processing's SVG renderer
+   Writes coordinates in mm using the same transform as start_draw() (auto-centering via bbox, optional -90deg rotation)
+   Handles clipping (clipLineToCenteredRect per segment) and non-clipping (continuous path per polyline)
+   Prints console progress every 10% of polylines
+ - xLib_ExportUtils: added centeredToMM() helper for drawing-space to mm page coordinate conversion
+ - xLib_FileUI: FileGUI.export_group (PolylineGroup) — set in sketch setup() to enable direct SVG export
+ - xLib_FileUI: ExportSVG() uses direct writer when export_group is set + paper format selected; falls back to Processing renderer otherwise
+ - xLib_FileUI: added ExportSVGProcessing() — forces Processing's SVG renderer (legacy fallback button)
+ - xLib_FileUI: removed Export PDF button from GUI
 
  ## [2.4.0] - 2026-05-22
  - xLib_ExportUtils: removed EXPORT_DPI — getPaperDimensions() now returns mm (physical units)

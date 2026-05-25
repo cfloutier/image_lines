@@ -159,7 +159,7 @@ class GUIPanel implements ControlListener
     // like labels
     // or show hide controls depending on a status
 
-    println("Error : update_ui() must be implemented in extended classes ");
+    // println("Error : update_ui() must be implemented in extended classes ");
   }
 
 

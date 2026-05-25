@@ -55,6 +55,7 @@ void setup()
   threshold_filter = new ThresholdFilter(data.lines, data.threshold);
 
   setupControls();
+  file_ui.export_group = generator.group;
 
   data.LoadSettings("./Settings/test_lines.json");
 

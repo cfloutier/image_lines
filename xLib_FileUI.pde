@@ -30,6 +30,10 @@ class FileGUI extends GUIPanel
   float export_scale = 1.0;
   boolean export_should_rotate = false;
 
+  // Set this to your sketch's PolylineGroup to enable direct SVG export
+  // (bypasses Processing's SVG renderer – faster, with console progress)
+  PolylineGroup export_group = null;
+
   int last_save_duration = -1;
 
   FileGUI(DataGlobal data)
@@ -102,8 +106,8 @@ class FileGUI extends GUIPanel
 
     addLabel("Export : ");
 
-    addButton("Export PDF").plugTo(this, "ExportPDF");
     addButton("Export SVG").plugTo(this, "ExportSVG");
+    addButton("SVG (Processing)").plugTo(this, "ExportSVGProcessing");
 
     nextLine();
     addLabel("Page : ");
@@ -187,18 +191,38 @@ class FileGUI extends GUIPanel
     }
   }
 
-  void ExportPDF()
+  void ExportSVGProcessing()
   {
+    // Force Processing's SVG renderer (legacy fallback)
     _record = true;
     data.changed = true;
-    mode = 0;
+    mode = 2;
   }
 
   void ExportSVG()
   {
-    _record = true;
-    data.changed = true;
-    mode = 2;
+    if (export_group != null && export_group.size() > 0 && page_data.paper_format != PAPER_NONE) {
+      // Direct SVG export – bypasses Processing's SVG renderer
+      String name = data.name.equals("") ? "default" : data.name;
+      String fmt  = "";
+      switch (page_data.paper_format) {
+        case PAPER_A4: fmt = "_A4"; break;
+        case PAPER_A3: fmt = "_A3"; break;
+        case PAPER_A2: fmt = "_A2"; break;
+      }
+      String filepath = sketchPath("Export/" + name + fmt + "_"
+        + year() + "-" + month() + "-" + day()
+        + "_" + hour() + "-" + minute() + "-" + second() + ".svg");
+      long t0 = System.currentTimeMillis();
+      writeSVGDirect(filepath, export_group, page_data.paper_format);
+      last_save_duration = (int)(System.currentTimeMillis() - t0);
+      println("[SVG] Export completed in " + StringUtils.formatDuration(last_save_duration));
+    } else {
+      // Fallback: Processing's SVG renderer (+ post-process)
+      _record = true;
+      data.changed = true;
+      mode = 2;
+    }
   }
 
   void Reset_Scale()
@@ -403,6 +427,9 @@ void end_draw()
     int duration = (int)(System.currentTimeMillis() - _record_start_millis);
     file_ui.last_save_duration = duration;
     println("Save completed in " + StringUtils.formatDuration(duration));
+    if (mode == 2) {
+      postProcessSVGForPlotter(export_fileName, data.page.paper_format);
+    }
     _record = false;
   } else {
     popMatrix();  // Close the pushMatrix from start_draw
