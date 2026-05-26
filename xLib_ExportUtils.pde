@@ -240,8 +240,8 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   final boolean has_paper = (paper_dims != null);
   final String  dim_u     = has_paper ? "mm" : "px";
   final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
-  final float   w_mm      = has_paper ? paper_dims[0] : (float)width;
-  final float   h_mm      = has_paper ? paper_dims[1] : (float)height;
+  final float   w_mm      = (paper_dims != null) ? paper_dims[0] : (float)width;
+  final float   h_mm      = (paper_dims != null) ? paper_dims[1] : (float)height;
   final float   cx_mm     = w_mm / 2.0;
   final float   cy_mm     = h_mm / 2.0;
   final float s       = file_ui.export_scale;          // drawing units → SVG px
@@ -345,8 +345,8 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
   final boolean has_paper = (paper_dims != null);
   final String  dim_u     = has_paper ? "mm" : "px";
   final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
-  final float   w_mm      = has_paper ? paper_dims[0] : (float)width;
-  final float   h_mm      = has_paper ? paper_dims[1] : (float)height;
+  final float   w_mm      = (paper_dims != null) ? paper_dims[0] : (float)width;
+  final float   h_mm      = (paper_dims != null) ? paper_dims[1] : (float)height;
   final float   cx_mm     = w_mm / 2.0;
   final float   cy_mm     = h_mm / 2.0;
   final float s         = file_ui.export_scale;
