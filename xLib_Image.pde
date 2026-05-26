@@ -8,7 +8,7 @@ class DataImage extends GenericData
   String source_file = "eye.jpg";
 
   boolean draw = true;
-  float imageAlpha = 0;
+  float imageAlpha = 255;
 
   float Width = 500;
   int   Blur = 2;
