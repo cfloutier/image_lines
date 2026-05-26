@@ -1,12 +1,21 @@
 String get_xlib_version()
 {
-  return "3.1.0";
+  return "3.2.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.2.0] - 2026-05-26
+ - xLib_ExportUtils: PAPER_NONE no longer aborts writeSVGDirect — fallback to canvas pixel dimensions (K=1, units=px)
+ - xLib_ExportUtils: added PAPER_RAISIN (4) — Grand Raisin 500x650 mm
+ - xLib_ExportUtils: all console prints renamed [SVG] → [SVG direct] for clarity
+ - xLib_FileUI: ExportSVG() — removed paper_format != PAPER_NONE condition, direct writer always used when data connected
+ - xLib_FileUI: added [SVG direct] / [SVG Processing] console prints to distinguish export paths
+ - xLib_FileUI: button renamed "Export SVG" → "SVG direct"
+ - xLib_FileUI: added Raisin to paper format radio button and _Raisin filename suffix
 
  ## [3.1.0] - 2026-05-25
  - xLib_ExportUtils: added writeSVGDirect(ShapesGroup) overload — exports dots as zero-length SVG lines with round linecap (AxiDraw convention)

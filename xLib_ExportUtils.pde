@@ -3,6 +3,7 @@ final int PAPER_NONE = 0;
 final int PAPER_A4 = 1;
 final int PAPER_A3 = 2;
 final int PAPER_A2 = 3;
+final int PAPER_RAISIN = 4;  // Grand Raisin 50x65 cm
 
 // Margin constants (in mm)
 final int MARGIN_0CM = 0;
@@ -22,6 +23,8 @@ final float A3_WIDTH_MM = 297;
 final float A3_HEIGHT_MM = 420;
 final float A2_WIDTH_MM = 420;
 final float A2_HEIGHT_MM = 594;
+final float RAISIN_WIDTH_MM  = 500;
+final float RAISIN_HEIGHT_MM = 650;
 
 // SVG unit conversion: 1 inch = 96px (SVG standard, fixed - not a calibration value)
 float mmToSvgPx(float mm) { return mm * 96.0 / 25.4; }
@@ -53,6 +56,7 @@ float[] getPaperDimensions(int format_enum)
     case PAPER_A4: return new float[]{ A4_WIDTH_MM, A4_HEIGHT_MM };
     case PAPER_A3: return new float[]{ A3_WIDTH_MM, A3_HEIGHT_MM };
     case PAPER_A2: return new float[]{ A2_WIDTH_MM, A2_HEIGHT_MM };
+    case PAPER_RAISIN: return new float[]{ RAISIN_WIDTH_MM, RAISIN_HEIGHT_MM };
     default: return null;
   }
 }
@@ -67,6 +71,7 @@ void printExportDebugInfo(BoundingBox bbox, float scale, int paper_format)
     case PAPER_A4: format_name = "A4"; break;
     case PAPER_A3: format_name = "A3"; break;
     case PAPER_A2: format_name = "A2"; break;
+    case PAPER_RAISIN: format_name = "Raisin"; break;
   }
   println("\n>>> EXPORT FRAME <<<");
   println("Paper format: " + format_name);
@@ -231,17 +236,14 @@ float[] centeredToMM(float cx, float cy, float s, float K,
 // - Clipping is applied when data.page.clipping is true
 // - Progress is printed to the console every 10 %
 void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) {
-  float[] paper_dims = getPaperDimensions(paper_format);
-  if (paper_dims == null) {
-    println("[SVG] Unknown paper format - aborting direct export.");
-    return;
-  }
-
-  final float K       = 25.4 / 96.0;
-  final float w_mm    = paper_dims[0];
-  final float h_mm    = paper_dims[1];
-  final float cx_mm   = w_mm / 2.0;
-  final float cy_mm   = h_mm / 2.0;
+  float[] paper_dims      = getPaperDimensions(paper_format);
+  final boolean has_paper = (paper_dims != null);
+  final String  dim_u     = has_paper ? "mm" : "px";
+  final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
+  final float   w_mm      = has_paper ? paper_dims[0] : (float)width;
+  final float   h_mm      = has_paper ? paper_dims[1] : (float)height;
+  final float   cx_mm     = w_mm / 2.0;
+  final float   cy_mm     = h_mm / 2.0;
   final float s       = file_ui.export_scale;          // drawing units → SVG px
   final boolean rot   = file_ui.export_should_rotate;
   // stroke-width in mm: lineWidth (drawing units) × scale (units→px) × K (px→mm)
@@ -257,11 +259,10 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
   int total = polylines.size();
-  println("[SVG] Starting direct export - " + total + " polylines");
-  println("[SVG] Paper: " + (int)w_mm + "x" + (int)h_mm + " mm  |  scale="+
-          String.format(java.util.Locale.US, "%.4f", s) +
-          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " mm" +
-          (rot ? "  |  rotated -90deg" : ""));
+  println("[SVG direct] " + total + " polylines  |  " + (int)w_mm + "x" + (int)h_mm + " " + dim_u +
+          "  |  scale=" + String.format(java.util.Locale.US, "%.4f", s) +
+          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u +
+          (rot ? "  |  rot+90deg" : ""));
 
   // Ensure Export directory exists
   new java.io.File(sketchPath("Export")).mkdirs();
@@ -325,10 +326,7 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
 
     done++;
     int pct = (total > 0) ? (100 * done / total) : 100;
-    if (pct != last_pct && pct % 10 == 0) {
-      println("[SVG]   " + done + " / " + total + " (" + pct + "%)");
-      last_pct = pct;
-    }
+    if (pct != last_pct && pct % 10 == 0) { println("[SVG direct]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
   }
 
   out.println("</g>");
@@ -336,24 +334,21 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   out.flush();
   out.close();
 
-  println("[SVG] Done - " + written + " paths written.");
+  println("[SVG direct] Done - " + written + " elements written.");
 }
 
 // Write a ShapesGroup (polylines + dots) directly to an SVG file.
 // Dots are rendered as zero-length lines with round linecap — same stroke-width as polylines.
 // This is the AxiDraw convention: a capped zero-length stroke = filled dot of diameter=stroke-width.
 void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
-  float[] paper_dims = getPaperDimensions(paper_format);
-  if (paper_dims == null) {
-    println("[SVG] Unknown paper format - aborting direct export.");
-    return;
-  }
-
-  final float K         = 25.4 / 96.0;
-  final float w_mm      = paper_dims[0];
-  final float h_mm      = paper_dims[1];
-  final float cx_mm     = w_mm / 2.0;
-  final float cy_mm     = h_mm / 2.0;
+  float[] paper_dims      = getPaperDimensions(paper_format);
+  final boolean has_paper = (paper_dims != null);
+  final String  dim_u     = has_paper ? "mm" : "px";
+  final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
+  final float   w_mm      = has_paper ? paper_dims[0] : (float)width;
+  final float   h_mm      = has_paper ? paper_dims[1] : (float)height;
+  final float   cx_mm     = w_mm / 2.0;
+  final float   cy_mm     = h_mm / 2.0;
   final float s         = file_ui.export_scale;
   final boolean rot     = file_ui.export_should_rotate;
   final float stroke_mm = data.style.lineWidth * s * K;
@@ -367,11 +362,11 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
   float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
   int total = shapes.totalCount();
-  println("[SVG] Starting direct export - " + shapes.polylineCount() + " polylines, " + shapes.dotCount() + " dots");
-  println("[SVG] Paper: " + (int)w_mm + "x" + (int)h_mm + " mm  |  scale=" +
-          String.format(java.util.Locale.US, "%.4f", s) +
-          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " mm" +
-          (rot ? "  |  rotated -90deg" : ""));
+  println("[SVG direct] " + shapes.polylineCount() + " polylines, " + shapes.dotCount() + " dots  |  " +
+          (int)w_mm + "x" + (int)h_mm + " " + dim_u +
+          "  |  scale=" + String.format(java.util.Locale.US, "%.4f", s) +
+          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u +
+          (rot ? "  |  rot+90deg" : ""));
 
   new java.io.File(sketchPath("Export")).mkdirs();
   PrintWriter out = createWriter(filepath);
@@ -380,8 +375,8 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
   out.println("<svg");
   out.println("  xmlns=\"http://www.w3.org/2000/svg\"");
   out.println("  version=\"1.1\"");
-  out.println("  width=\""  + (int)w_mm + "mm\"");
-  out.println("  height=\"" + (int)h_mm + "mm\"");
+  out.println("  width=\""  + (int)w_mm + dim_u + "\"");
+  out.println("  height=\"" + (int)h_mm + dim_u + "\"");
   out.println("  viewBox=\"0 0 " + (int)w_mm + " " + (int)h_mm + "\">");
   out.println("<g stroke=\"#000000\" fill=\"none\"");
   out.println("   stroke-width=\"" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + "\"");
@@ -424,7 +419,7 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
 
     done++;
     int pct = (total > 0) ? (100 * done / total) : 100;
-    if (pct != last_pct && pct % 10 == 0) { println("[SVG]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
+    if (pct != last_pct && pct % 10 == 0) { println("[SVG direct]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
   }
 
   // ── Dots: zero-length line with round linecap = filled dot (AxiDraw convention) ──
@@ -438,12 +433,12 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
     written++;
     done++;
     int pct = (total > 0) ? (100 * done / total) : 100;
-    if (pct != last_pct && pct % 10 == 0) { println("[SVG]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
+    if (pct != last_pct && pct % 10 == 0) { println("[SVG direct]   " + done + " / " + total + " (" + pct + "%)"); last_pct = pct; }
   }
 
   out.println("</g>");
   out.println("</svg>");
   out.flush();
   out.close();
-  println("[SVG] Done - " + written + " elements written.");
+  println("[SVG direct] Done - " + written + " elements written.");
 }

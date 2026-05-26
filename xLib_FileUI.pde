@@ -8,7 +8,7 @@ class DataPage extends GenericData
   float clip_width = 800;
   float clip_height = 600;
   
-  int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2
+  int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2, 4: Raisin (50x65 cm)
   int margin = MARGIN_3CM;  // 0: 0cm, 1: 1cm, 2: 2cm, 3: 3cm
 
   DataPage() {
@@ -109,7 +109,7 @@ class FileGUI extends GUIPanel
 
     addLabel("Export : ");
 
-    addButton("Export SVG").plugTo(this, "ExportSVG");
+    addButton("SVG direct").plugTo(this, "ExportSVG");
     addButton("SVG (Processing)").plugTo(this, "ExportSVGProcessing");
 
     nextLine();
@@ -150,6 +150,7 @@ class FileGUI extends GUIPanel
     paper_formats.add("A4");
     paper_formats.add("A3");
     paper_formats.add("A2");
+    paper_formats.add("Raisin");
     paper_format_radio = addRadio("paper_format", paper_formats);
     
     // nextLine();
@@ -204,16 +205,19 @@ class FileGUI extends GUIPanel
 
   void ExportSVG()
   {
-    boolean use_shapes = export_shapes != null && export_shapes.totalCount() > 0 && page_data.paper_format != PAPER_NONE;
-    boolean use_group  = export_group  != null && export_group.size()  > 0 && page_data.paper_format != PAPER_NONE;
+    boolean use_shapes = export_shapes != null && export_shapes.totalCount() > 0;
+    boolean use_group  = export_group  != null && export_group.size()  > 0;
 
     if (use_shapes || use_group) {
+      println("[SVG direct] Export with custom writer (paper=" +
+        (page_data.paper_format == PAPER_NONE ? "none, px mode" : "format " + page_data.paper_format) + ")");
       String name = data.name.equals("") ? "default" : data.name;
       String fmt  = "";
       switch (page_data.paper_format) {
         case PAPER_A4: fmt = "_A4"; break;
         case PAPER_A3: fmt = "_A3"; break;
         case PAPER_A2: fmt = "_A2"; break;
+        case PAPER_RAISIN: fmt = "_Raisin"; break;
       }
       String filepath = sketchPath("Export/" + name + fmt + "_"
         + year() + "-" + month() + "-" + day()
@@ -225,6 +229,7 @@ class FileGUI extends GUIPanel
       last_save_duration = (int)(System.currentTimeMillis() - t0);
       println("[SVG] Export completed in " + StringUtils.formatDuration(last_save_duration));
     } else {
+      println("[SVG Processing] No export data connected - fallback to Processing renderer");
       // Fallback: Processing's SVG renderer (+ post-process)
       _record = true;
       data.changed = true;
