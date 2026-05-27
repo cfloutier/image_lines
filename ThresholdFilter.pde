@@ -3,7 +3,7 @@ class DataThreshold extends GenericData
 {
   static final int DISTRIBUTION_PROGRESSIVE = 0;
   static final int DISTRIBUTION_MIRROR = 1;
-  static final int DISTRIBUTION_HATCHING = 2;
+  static final int DISTRIBUTION_HACHURES = 2;
 
   DataThreshold() {
     super("Threshold");
@@ -52,8 +52,9 @@ class DataThreshold extends GenericData
     if (wrapped < 0)
       wrapped += nb_values;
 
-    if (distribution_mode == DISTRIBUTION_HATCHING)
+    if (distribution_mode == DISTRIBUTION_HACHURES)
     {
+      // Hachures mode alternates far-apart thresholds: 0, max, 1, max-1, 2, ...
       if ((wrapped % 2) == 0)
         return wrapped / 2;
       return (nb_values - 1) - (wrapped / 2);

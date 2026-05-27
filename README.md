@@ -104,7 +104,7 @@ The threshold system controls which segments of each line are drawn, based on pi
 |-----------|------|
 | `nb_values` | Number of threshold levels (1 to 12) |
 | `black` | If on, draw segments in dark areas; if off, draw in bright areas |
-| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, or `hachures` (`hatching`) |
+| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, or `hachures` |
 | `power` | Curve exponent: `0` = linear, `> 0` = concentrated toward bright, `< 0` = concentrated toward dark |
 | `min_value` / `max_value` | Tonal range clamp before threshold evaluation |
 
