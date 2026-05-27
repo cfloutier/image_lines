@@ -1,15 +1,19 @@
 
 class DataThreshold extends GenericData
 {
+  static final int DISTRIBUTION_PROGRESSIVE = 0;
+  static final int DISTRIBUTION_MIRROR = 1;
+  static final int DISTRIBUTION_HATCHING = 2;
+
   DataThreshold() {
     super("Threshold");
   }
 
   boolean draw = true;
   boolean black = true;
-  boolean mirror = false;
+  int distribution_mode = DISTRIBUTION_PROGRESSIVE;
 
-  int nb_values = 6;
+  int nb_values = 1;
 
   float power = 0;
   float min_value = 0;
@@ -39,9 +43,37 @@ class DataThreshold extends GenericData
     return lerp(min_value, max_value, value);
   }
 
+  int get_distributed_threshold_index(int index)
+  {
+    if (nb_values <= 1)
+      return 0;
+
+    int wrapped = index % nb_values;
+    if (wrapped < 0)
+      wrapped += nb_values;
+
+    if (distribution_mode == DISTRIBUTION_HATCHING)
+    {
+      if ((wrapped % 2) == 0)
+        return wrapped / 2;
+      return (nb_values - 1) - (wrapped / 2);
+    }
+
+    return wrapped;
+  }
+
 
   public void LoadJson(JSONObject json) {
     super.LoadJson(json);
+
+    if (json == null)
+      return;
+
+    // backward compatibility with old presets that only had `mirror`
+    if (!json.hasKey("distribution_mode") && json.hasKey("mirror"))
+    {
+      distribution_mode = json.getBoolean("mirror", false) ? DISTRIBUTION_MIRROR : DISTRIBUTION_PROGRESSIVE;
+    }
   }
 }
 
@@ -57,7 +89,7 @@ class ThresholdGUI extends GUIPanel
 
   Toggle draw;
   Toggle black;
-  Toggle mirror;
+  RadioButton distribution_mode;
 
   Slider nb_values;
 
@@ -75,9 +107,14 @@ class ThresholdGUI extends GUIPanel
     nextLine();
 
     black = addToggle("black", "Black Lines");
-    mirror = addToggle("mirror", "Mirror order");
-
     nextLine();
+
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("Progressive");
+    labels.add("Mirror");
+    labels.add("Hachures");
+    addLabel("Threshold Distribution");
+    distribution_mode = addRadio("distribution_mode", labels);
 
     nb_values = addIntSlider("nb_values", "Nb values used", 1, 12);
     nextLine();
@@ -97,7 +134,7 @@ class ThresholdGUI extends GUIPanel
   {
     draw.setValue(data.draw);
     black.setValue(data.black);
-    mirror.setValue(data.mirror);
+    distribution_mode.activate(data.distribution_mode);
     nb_values.setValue(data.nb_values);
 
     power.setValue(data.power);
@@ -140,12 +177,13 @@ class ThresholdFilter extends ImageLinesGenerator
       if (source_line.group_id != current_group_id)
       {
         current_group_id = source_line.group_id;
-        threshold = data_threshold.get_threshold_by_index(threshold_index);
+        int distributed_index = data_threshold.get_distributed_threshold_index(threshold_index);
+        threshold = data_threshold.get_threshold_by_index(distributed_index);
         //print("-" + threshold_index);
 
-        threshold_index += direction_index;
-        if (data_threshold.mirror)
+        if (data_threshold.distribution_mode == DataThreshold.DISTRIBUTION_MIRROR)
         {
+          threshold_index += direction_index;
           if (threshold_index >= data_threshold.nb_values || threshold_index < 0)
           {
             direction_index = -direction_index;
@@ -153,6 +191,7 @@ class ThresholdFilter extends ImageLinesGenerator
           }
         } else
         {
+          threshold_index++;
           if (threshold_index >= data_threshold.nb_values)
             threshold_index = 0;
         }
