@@ -63,19 +63,6 @@ class DataThreshold extends GenericData
     return wrapped;
   }
 
-
-  public void LoadJson(JSONObject json) {
-    super.LoadJson(json);
-
-    if (json == null)
-      return;
-
-    // backward compatibility with old presets that only had `mirror`
-    if (!json.hasKey("distribution_mode") && json.hasKey("mirror"))
-    {
-      distribution_mode = json.getBoolean("mirror", false) ? DISTRIBUTION_MIRROR : DISTRIBUTION_PROGRESSIVE;
-    }
-  }
 }
 
 class ThresholdGUI extends GUIPanel
