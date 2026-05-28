@@ -1,12 +1,17 @@
 String get_xlib_version()
 {
-  return "3.2.0";
+  return "3.3.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.3.0] - 2026-05-28
+ - xLib_ThresholdData: new file — DataThreshold + ThresholdGUI shared between image_lines and image_contours
+   Supports 6 distribution modes: PROGRESSIVE, MIRROR, HACHURES, INTERLEAVED, BISECT, BISECT_BFS
+ - xLib_Polyline: added group_id field (default -1) — used by threshold filters to cycle thresholds per line group / contour level
 
  ## [3.2.0] - 2026-05-26
  - xLib_ExportUtils: PAPER_NONE no longer aborts writeSVGDirect — fallback to canvas pixel dimensions (K=1, units=px)
