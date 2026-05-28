@@ -104,7 +104,7 @@ The threshold system controls which segments of each line are drawn, based on pi
 |-----------|------|
 | `nb_values` | Number of threshold levels (1 to 12) |
 | `black` | If on, draw segments in dark areas; if off, draw in bright areas |
-| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, `hachures`, or `interleaved` |
+| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, `hachures`, `interleaved`, or `bisect` |
 | `power` | Curve exponent: `0` = linear, `> 0` = concentrated toward bright, `< 0` = concentrated toward dark |
 | `min_value` / `max_value` | Tonal range clamp before threshold evaluation |
 
@@ -157,6 +157,8 @@ Supports PDF, SVG, and DXF export (plotter-ready).
 - `distribution_mode = mirror` with `nb_values = 3–5` creates a symmetric band pattern that reads well at plotter scale.
 - `distribution_mode = hachures` alternates far-apart thresholds on adjacent lines, helping keep hatch separation after plotting.
 - `distribution_mode = interleaved` spreads successive thresholds between already-used lines to keep transitions more evenly distributed.
+- `distribution_mode = bisect` places les seuils par subdivision binaire pondérée : i=0 → seuil 0, puis chaque position est déterminée par le nombre de zéros terminaux de son indice. La période vaut 2^(n-1) et les seuils hauts sont plus fréquents (seuil n-1 toutes les 2 lignes, seuil n-2 toutes les 4 lignes, etc.). Pour n=4 : `0 3 2 3 1 3 2 3`.
+- `distribution_mode = bisect_bfs` variante équifréquente : chaque seuil apparaît exactement une fois (période = n). Subdivision BFS du milieu de chaque sous-intervalle. Pour n=8 : `0 4 2 6 1 3 5 7`.
 - Lower `precision` (e.g. 0.5–1.0) is needed for smooth circles at large radii; higher values (3–5) are fine for straight lines.
 
 ---

@@ -1,53 +1,53 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -16777216,
-    "lineWidth": 1.2666666507720947
-  },
-  "Image": {
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 1898,
-    "Contrast": 0,
-    "source_file": "lateam.png"
-  },
-  "Lines": {
-    "lines_spacing": 0.6110000014305115,
-    "precision": 1.34333336353302,
-    "min_radius": 0,
-    "draw": false,
-    "type": 1,
-    "canvas_width": 733,
-    "max_radius": 1390,
-    "size": 2000,
-    "nb_lines": 2274,
-    "canvas_height": 733,
-    "ellipse": 0,
-    "center_y": 546.66650390625,
-    "use_canvas": false,
-    "direction": 20.400001525878906,
-    "center_x": 0
-  },
-  "Threshold": {
-    "threshold_12": 255,
-    "threshold_11": 255,
-    "threshold_2": 23.016141891479492,
-    "threshold_3": 47.662109375,
-    "threshold_10": 255,
-    "threshold_1": 6.800000190734863,
-    "black": true,
-    "draw": true,
-    "min_value": 6.800000190734863,
-    "use_power": true,
-    "threshold_6": 145.4459991455078,
-    "threshold_7": 183.60000610351562,
-    "threshold_4": 76.96314239501953,
-    "power": 0.33333301544189453,
-    "threshold_5": 109.76603698730469,
-    "nb_values": 7,
-    "threshold_8": 223.9423828125,
-    "max_value": 183.60000610351562,
-    "threshold_9": 255,
-    "distribution_mode": 1
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -16777216,
+                  "lineWidth":  1.2666666507720947
+              },
+    "Image":  {
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  1898,
+                  "Contrast":  0,
+                  "source_file":  "lateam.png"
+              },
+    "Lines":  {
+                  "lines_spacing":  0.6110000014305115,
+                  "precision":  1.34333336353302,
+                  "min_radius":  0,
+                  "draw":  false,
+                  "type":  1,
+                  "canvas_width":  733,
+                  "max_radius":  1390,
+                  "size":  2000,
+                  "nb_lines":  2274,
+                  "canvas_height":  733,
+                  "ellipse":  0,
+                  "center_y":  546.66650390625,
+                  "use_canvas":  false,
+                  "direction":  20.400001525878906,
+                  "center_x":  0
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  255,
+                      "threshold_11":  255,
+                      "threshold_2":  23.016141891479492,
+                      "threshold_3":  47.662109375,
+                      "threshold_10":  255,
+                      "threshold_1":  6.800000190734863,
+                      "black":  true,
+                      "min_value":  6.800000190734863,
+                      "use_power":  true,
+                      "threshold_6":  145.4459991455078,
+                      "threshold_7":  183.60000610351562,
+                      "threshold_4":  76.96314239501953,
+                      "power":  0.33333301544189453,
+                      "threshold_5":  109.76603698730469,
+                      "nb_values":  7,
+                      "threshold_8":  223.9423828125,
+                      "max_value":  183.60000610351562,
+                      "threshold_9":  255,
+                      "distribution_mode":  1
+                  }
 }

@@ -4,6 +4,7 @@
 class Polyline
 {
   ArrayList<PVector> points = new ArrayList<PVector>();
+  int group_id = -1;  // index used by threshold filters to cycle thresholds per group/level
 
   void draw()
   {

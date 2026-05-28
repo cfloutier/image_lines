@@ -94,7 +94,7 @@ void draw()
   if (data.lines.draw)
     generator.draw();
 
-  if (data.threshold.draw)
+  if (data.threshold.enabled)
     threshold_filter.draw();
 
   end_draw();

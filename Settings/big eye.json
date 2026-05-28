@@ -1,70 +1,70 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -15261654,
-    "lineWidth": 1.2166666984558105
-  },
-  "Page": {
-    "clipping": false,
-    "clip_width": 0,
-    "clip_height": 0,
-    "global_scale": 1.3600006103515625
-  },
-  "Image": {
-    "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 1334,
-    "Contrast": 0,
-    "source_file": "eye3.png"
-  },
-  "Lines": {
-    "SinusLines": {
-      "high": 20,
-      "period": 140.46665954589844,
-      "size": 587.1000366210938,
-      "direction_sinus": -57.599998474121094
-    },
-    "canvas_width": 886,
-    "lines_spacing": 0.6266666650772095,
-    "nb_lines": 1873,
-    "precision": 3.5973334312438965,
-    "canvas_height": 379,
-    "draw": false,
-    "type": 2,
-    "CircleLines": {
-      "max_radius": 1120,
-      "min_radius": 0,
-      "ellipse": 0,
-      "center_y": 26.6666259765625,
-      "center_x": -33.333251953125
-    },
-    "use_canvas": true,
-    "StraightLines": {
-      "size": 587.1000366210938,
-      "direction": 45.600006103515625
-    }
-  },
-  "Threshold": {
-    "threshold_12": 172.07144165039062,
-    "threshold_11": 152.50289916992188,
-    "threshold_2": 8.252996444702148,
-    "threshold_3": 19.857120513916016,
-    "threshold_10": 133.45001220703125,
-    "threshold_1": 0,
-    "black": true,
-    "draw": true,
-    "min_value": 0,
-    "use_power": true,
-    "threshold_6": 63.38310623168945,
-    "threshold_7": 79.84905242919922,
-    "threshold_4": 33.18678283691406,
-    "power": 0.2666664123535156,
-    "threshold_5": 47.777217864990234,
-    "nb_values": 10,
-    "threshold_8": 97.06641387939453,
-    "max_value": 133.45001220703125,
-    "threshold_9": 114.95436096191406,
-    "distribution_mode": 1
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -15261654,
+                  "lineWidth":  1.2166666984558105
+              },
+    "Page":  {
+                 "clipping":  false,
+                 "clip_width":  0,
+                 "clip_height":  0,
+                 "global_scale":  1.3600006103515625
+             },
+    "Image":  {
+                  "reset_image":  false,
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  1334,
+                  "Contrast":  0,
+                  "source_file":  "eye3.png"
+              },
+    "Lines":  {
+                  "SinusLines":  {
+                                     "high":  20,
+                                     "period":  140.46665954589844,
+                                     "size":  587.1000366210938,
+                                     "direction_sinus":  -57.599998474121094
+                                 },
+                  "canvas_width":  886,
+                  "lines_spacing":  0.6266666650772095,
+                  "nb_lines":  1873,
+                  "precision":  3.5973334312438965,
+                  "canvas_height":  379,
+                  "draw":  false,
+                  "type":  2,
+                  "CircleLines":  {
+                                      "max_radius":  1120,
+                                      "min_radius":  0,
+                                      "ellipse":  0,
+                                      "center_y":  26.6666259765625,
+                                      "center_x":  -33.333251953125
+                                  },
+                  "use_canvas":  true,
+                  "StraightLines":  {
+                                        "size":  587.1000366210938,
+                                        "direction":  45.600006103515625
+                                    }
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  172.07144165039062,
+                      "threshold_11":  152.50289916992188,
+                      "threshold_2":  8.252996444702148,
+                      "threshold_3":  19.857120513916016,
+                      "threshold_10":  133.45001220703125,
+                      "threshold_1":  0,
+                      "black":  true,
+                      "min_value":  0,
+                      "use_power":  true,
+                      "threshold_6":  63.38310623168945,
+                      "threshold_7":  79.84905242919922,
+                      "threshold_4":  33.18678283691406,
+                      "power":  0.2666664123535156,
+                      "threshold_5":  47.777217864990234,
+                      "nb_values":  10,
+                      "threshold_8":  97.06641387939453,
+                      "max_value":  133.45001220703125,
+                      "threshold_9":  114.95436096191406,
+                      "distribution_mode":  1
+                  }
 }

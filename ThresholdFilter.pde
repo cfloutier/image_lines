@@ -1,10 +1,83 @@
 
-class DataThreshold extends GenericData
+class ThresholdFilter extends ImageLinesGenerator
 {
+  public ThresholdFilter(DataLines data_lines, DataThreshold data_threshold) {
+    super(data_lines);
+    this.data_threshold = data_threshold;
+  }
+
+  DataThreshold data_threshold;
+
+  void buildLines(ImageLinesGenerator source_generator, DataImage image)
+  {
+    buildLines(source_generator.group, image);
+  }
+
+  void buildLines(PolylineGroup source_group, DataImage image)
+  {
+    group.clear();
+
+    int direction_index  = 1;
+    int threshold_index  = 0;
+    int current_group_id = -1;
+    float threshold      = 0;
+
+    for (int i_line = 0; i_line < source_group.size(); i_line++)
+    {
+      Polyline source_line = source_group.polylines.get(i_line);
+
+      if (source_line.group_id != current_group_id)
+      {
+        current_group_id = source_line.group_id;
+        int distributed_index = data_threshold.get_distributed_threshold_index(threshold_index);
+        threshold = data_threshold.get_threshold_by_index(distributed_index);
+
+        if (data_threshold.distribution_mode == DataThreshold.DISTRIBUTION_MIRROR)
+        {
+          threshold_index += direction_index;
+          if (threshold_index >= data_threshold.nb_values || threshold_index < 0)
+          {
+            direction_index  = -direction_index;
+            threshold_index += direction_index * 2;
+          }
+        }
+        else
+        {
+          threshold_index++;
+          if (threshold_index >= data_threshold.nb_values)
+            threshold_index = 0;
+        }
+      }
+
+      for (int i_point = 0; i_point < source_line.points.size(); i_point++)
+      {
+        PVector point = source_line.points.get(i_point);
+        float value = image.getPixelValue(point);
+        if (value == -1)
+          closeLine();
+        else if (data_threshold.black)
+        {
+          if (value < threshold) addPoint(point);
+          else                   closeLine();
+        }
+        else
+        {
+          if (value > threshold) addPoint(point);
+          else                   closeLine();
+        }
+      }
+
+      closeLine();
+    }
+  }
+}
+
   static final int DISTRIBUTION_PROGRESSIVE = 0;
   static final int DISTRIBUTION_MIRROR = 1;
   static final int DISTRIBUTION_HACHURES = 2;
   static final int DISTRIBUTION_INTERLEAVED = 3;
+  static final int DISTRIBUTION_BISECT = 4;
+  static final int DISTRIBUTION_BISECT_BFS = 5;
 
   DataThreshold() {
     super("Threshold");
@@ -21,6 +94,8 @@ class DataThreshold extends GenericData
   float max_value = 255;
   int cached_interleaved_nb_values = -1;
   int[] cached_interleaved_thresholds = null;
+  int cached_bisect_bfs_nb_values = -1;
+  int[] cached_bisect_bfs_thresholds = null;
 
   float lerp(float v0, float v1, float t) {
     return (1 - t) * v0 + t * v1;
@@ -66,6 +141,24 @@ class DataThreshold extends GenericData
     if (distribution_mode == DISTRIBUTION_INTERLEAVED)
     {
       return get_interleaved_threshold_index(wrapped);
+    }
+
+    if (distribution_mode == DISTRIBUTION_BISECT)
+    {
+      // Period = 2^(nb_values-1). The threshold at position i is determined
+      // by the number of trailing zeros of i: threshold = (nb_values-1) - tz(i).
+      // i=0 is always threshold 0. Result: 0 3 2 3 1 3 2 3 ... for n=4.
+      int period = 1 << (nb_values - 1);
+      int i = wrapped % period;
+      if (i < 0) i += period;
+      if (i == 0) return 0;
+      int tz = Integer.numberOfTrailingZeros(i);
+      return max(0, (nb_values - 1) - tz);
+    }
+
+    if (distribution_mode == DISTRIBUTION_BISECT_BFS)
+    {
+      return get_bisect_bfs_threshold_index(wrapped);
     }
 
     return wrapped;
@@ -120,6 +213,46 @@ class DataThreshold extends GenericData
     }
   }
 
+  int get_bisect_bfs_threshold_index(int wrapped)
+  {
+    if (cached_bisect_bfs_thresholds == null || cached_bisect_bfs_nb_values != nb_values)
+      compute_bisect_bfs_thresholds();
+    return cached_bisect_bfs_thresholds[wrapped];
+  }
+
+  void compute_bisect_bfs_thresholds()
+  {
+    // BFS midpoint subdivision: each threshold used exactly once, period = nb_values.
+    // For n=8 the sequence is [0, 4, 2, 6, 1, 3, 5, 7].
+    cached_bisect_bfs_nb_values = nb_values;
+    cached_bisect_bfs_thresholds = new int[nb_values];
+    if (nb_values == 0) return;
+
+    cached_bisect_bfs_thresholds[0] = 0;
+    if (nb_values == 1) return;
+
+    int MAX_Q = nb_values + 4;
+    int[] q_lo = new int[MAX_Q];
+    int[] q_hi = new int[MAX_Q];
+    int q_head = 0, q_tail = 0;
+    int line_index = 1;
+
+    q_lo[q_tail] = 1; q_hi[q_tail] = nb_values - 1; q_tail++;
+
+    while (q_head < q_tail && line_index < nb_values)
+    {
+      int lo = q_lo[q_head];
+      int hi = q_hi[q_head];
+      q_head++;
+
+      int mid = (lo + hi) / 2;
+      cached_bisect_bfs_thresholds[line_index++] = mid;
+
+      if (lo < mid) { q_lo[q_tail] = lo; q_hi[q_tail] = mid - 1; q_tail++; }
+      if (mid < hi) { q_lo[q_tail] = mid + 1; q_hi[q_tail] = hi; q_tail++; }
+    }
+  }
+
 }
 
 class ThresholdGUI extends GUIPanel
@@ -159,6 +292,8 @@ class ThresholdGUI extends GUIPanel
     labels.add("Mirror");
     labels.add("Hachures");
     labels.add("Interleaved");
+    labels.add("Bisect");
+    labels.add("Bisect BFS");
     addLabel("Threshold Distribution");
     distribution_mode = addRadio("distribution_mode", labels);
 

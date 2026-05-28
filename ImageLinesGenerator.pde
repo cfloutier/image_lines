@@ -1,6 +1,6 @@
 class ImageLine extends Polyline
 {
-  int group_id = 0;  // Track which original line this segment belongs to
+  // group_id inherited from Polyline — set by ImageLinesGenerator to track threshold groups
 }
 
 abstract class ImageLinesGenerator {

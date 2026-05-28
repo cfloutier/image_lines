@@ -1,70 +1,70 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -16777216,
-    "lineWidth": 1.6500000953674316
-  },
-  "Page": {
-    "clipping": false,
-    "clip_width": 0,
-    "clip_height": 0,
-    "global_scale": 0.7567569017410278
-  },
-  "Image": {
-    "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 1142,
-    "Contrast": 0,
-    "source_file": "Rosaparks_4-5_(cropped).jpg"
-  },
-  "Lines": {
-    "SinusLines": {
-      "high": 20,
-      "period": 100,
-      "size": 520.7666625976562,
-      "direction_sinus": 0
-    },
-    "canvas_width": 841,
-    "lines_spacing": 0.6610000133514404,
-    "nb_lines": 2148,
-    "precision": 3.5973334312438965,
-    "canvas_height": 733,
-    "draw": false,
-    "type": 1,
-    "CircleLines": {
-      "max_radius": 1420.0001220703125,
-      "min_radius": 0,
-      "ellipse": -0.059999942779541016,
-      "center_y": 800,
-      "center_x": -33.333251953125
-    },
-    "use_canvas": false,
-    "StraightLines": {
-      "size": 520.7666625976562,
-      "direction": -39.599998474121094
-    }
-  },
-  "Threshold": {
-    "threshold_12": 255,
-    "threshold_11": 255,
-    "threshold_2": 76.68405151367188,
-    "threshold_3": 92.31051635742188,
-    "threshold_10": 255,
-    "threshold_1": 67.1500015258789,
-    "black": true,
-    "draw": true,
-    "min_value": 67.1500015258789,
-    "use_power": true,
-    "threshold_6": 157.89772033691406,
-    "threshold_7": 184.28578186035156,
-    "threshold_4": 111.53614044189453,
-    "power": 0.40000057220458984,
-    "threshold_5": 133.5490264892578,
-    "nb_values": 8,
-    "threshold_8": 212.50001525878906,
-    "max_value": 212.50001525878906,
-    "threshold_9": 242.37814331054688,
-    "distribution_mode": 1
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -16777216,
+                  "lineWidth":  1.6500000953674316
+              },
+    "Page":  {
+                 "clipping":  false,
+                 "clip_width":  0,
+                 "clip_height":  0,
+                 "global_scale":  0.7567569017410278
+             },
+    "Image":  {
+                  "reset_image":  false,
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  1142,
+                  "Contrast":  0,
+                  "source_file":  "Rosaparks_4-5_(cropped).jpg"
+              },
+    "Lines":  {
+                  "SinusLines":  {
+                                     "high":  20,
+                                     "period":  100,
+                                     "size":  520.7666625976562,
+                                     "direction_sinus":  0
+                                 },
+                  "canvas_width":  841,
+                  "lines_spacing":  0.6610000133514404,
+                  "nb_lines":  2148,
+                  "precision":  3.5973334312438965,
+                  "canvas_height":  733,
+                  "draw":  false,
+                  "type":  1,
+                  "CircleLines":  {
+                                      "max_radius":  1420.0001220703125,
+                                      "min_radius":  0,
+                                      "ellipse":  -0.059999942779541016,
+                                      "center_y":  800,
+                                      "center_x":  -33.333251953125
+                                  },
+                  "use_canvas":  false,
+                  "StraightLines":  {
+                                        "size":  520.7666625976562,
+                                        "direction":  -39.599998474121094
+                                    }
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  255,
+                      "threshold_11":  255,
+                      "threshold_2":  76.68405151367188,
+                      "threshold_3":  92.31051635742188,
+                      "threshold_10":  255,
+                      "threshold_1":  67.1500015258789,
+                      "black":  true,
+                      "min_value":  67.1500015258789,
+                      "use_power":  true,
+                      "threshold_6":  157.89772033691406,
+                      "threshold_7":  184.28578186035156,
+                      "threshold_4":  111.53614044189453,
+                      "power":  0.40000057220458984,
+                      "threshold_5":  133.5490264892578,
+                      "nb_values":  8,
+                      "threshold_8":  212.50001525878906,
+                      "max_value":  212.50001525878906,
+                      "threshold_9":  242.37814331054688,
+                      "distribution_mode":  1
+                  }
 }
