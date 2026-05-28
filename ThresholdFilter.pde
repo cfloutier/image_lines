@@ -4,6 +4,7 @@ class DataThreshold extends GenericData
   static final int DISTRIBUTION_PROGRESSIVE = 0;
   static final int DISTRIBUTION_MIRROR = 1;
   static final int DISTRIBUTION_HACHURES = 2;
+  static final int DISTRIBUTION_INTERLEAVED = 3;
 
   DataThreshold() {
     super("Threshold");
@@ -60,7 +61,55 @@ class DataThreshold extends GenericData
       return (nb_values - 1) - (wrapped / 2);
     }
 
+    if (distribution_mode == DISTRIBUTION_INTERLEAVED)
+    {
+      return get_interleaved_threshold_index(wrapped);
+    }
+
     return wrapped;
+  }
+
+  int get_interleaved_threshold_index(int wrapped)
+  {
+    int[] ordered_thresholds = new int[nb_values];
+    boolean[] used_positions = new boolean[nb_values];
+    ordered_thresholds[0] = 0;
+    used_positions[0] = true;
+
+    for (int threshold_index = 1; threshold_index < nb_values; threshold_index++)
+    {
+      int best_position = -1;
+      int best_score = -1;
+
+      for (int candidate_position = 0; candidate_position < nb_values; candidate_position++)
+      {
+        if (used_positions[candidate_position])
+          continue;
+
+        int nearest_used_distance = nb_values;
+        for (int used_position = 0; used_position < nb_values; used_position++)
+        {
+          if (!used_positions[used_position])
+            continue;
+
+          int distance = abs(candidate_position - used_position);
+          distance = min(distance, nb_values - distance);
+          if (distance < nearest_used_distance)
+            nearest_used_distance = distance;
+        }
+
+        if (nearest_used_distance > best_score)
+        {
+          best_score = nearest_used_distance;
+          best_position = candidate_position;
+        }
+      }
+
+      used_positions[best_position] = true;
+      ordered_thresholds[best_position] = threshold_index;
+    }
+
+    return ordered_thresholds[wrapped];
   }
 
 }
@@ -101,6 +150,7 @@ class ThresholdGUI extends GUIPanel
     labels.add("Progressive");
     labels.add("Mirror");
     labels.add("Hachures");
+    labels.add("Interleaved");
     addLabel("Threshold Distribution");
     distribution_mode = addRadio("distribution_mode", labels);
 

@@ -104,7 +104,7 @@ The threshold system controls which segments of each line are drawn, based on pi
 |-----------|------|
 | `nb_values` | Number of threshold levels (1 to 12) |
 | `black` | If on, draw segments in dark areas; if off, draw in bright areas |
-| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, or `hachures` |
+| `distribution_mode` | Threshold order across adjacent lines: `progressive`, `mirror`, `hachures`, or `interleaved` |
 | `power` | Curve exponent: `0` = linear, `> 0` = concentrated toward bright, `< 0` = concentrated toward dark |
 | `min_value` / `max_value` | Tonal range clamp before threshold evaluation |
 
@@ -156,6 +156,7 @@ Supports PDF, SVG, and DXF export (plotter-ready).
 - A negative `power` value concentrates thresholds in the shadows, useful for high-contrast portraits.
 - `distribution_mode = mirror` with `nb_values = 3–5` creates a symmetric band pattern that reads well at plotter scale.
 - `distribution_mode = hachures` alternates far-apart thresholds on adjacent lines, helping keep hatch separation after plotting.
+- `distribution_mode = interleaved` spreads successive thresholds between already-used lines to keep transitions more evenly distributed.
 - Lower `precision` (e.g. 0.5–1.0) is needed for smooth circles at large radii; higher values (3–5) are fine for straight lines.
 
 ---
