@@ -31,7 +31,6 @@
   "Threshold": {
     "threshold_12": 255,
     "threshold_11": 255,
-    "mirror": true,
     "threshold_2": 23.016141891479492,
     "threshold_3": 47.662109375,
     "threshold_10": 255,
@@ -48,6 +47,7 @@
     "nb_values": 7,
     "threshold_8": 223.9423828125,
     "max_value": 183.60000610351562,
-    "threshold_9": 255
+    "threshold_9": 255,
+    "distribution_mode": 1
   }
 }
