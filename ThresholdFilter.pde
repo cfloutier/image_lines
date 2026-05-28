@@ -19,6 +19,8 @@ class DataThreshold extends GenericData
   float power = 0;
   float min_value = 0;
   float max_value = 255;
+  int cached_interleaved_nb_values = -1;
+  int[] cached_interleaved_thresholds = null;
 
   float lerp(float v0, float v1, float t) {
     return (1 - t) * v0 + t * v1;
@@ -71,9 +73,17 @@ class DataThreshold extends GenericData
 
   int get_interleaved_threshold_index(int wrapped)
   {
-    int[] ordered_thresholds = new int[nb_values];
+    if (cached_interleaved_thresholds == null || cached_interleaved_nb_values != nb_values)
+      compute_interleaved_thresholds();
+    return cached_interleaved_thresholds[wrapped];
+  }
+
+  void compute_interleaved_thresholds()
+  {
+    cached_interleaved_nb_values = nb_values;
+    cached_interleaved_thresholds = new int[nb_values];
     boolean[] used_positions = new boolean[nb_values];
-    ordered_thresholds[0] = 0;
+    cached_interleaved_thresholds[0] = 0;
     used_positions[0] = true;
 
     for (int threshold_index = 1; threshold_index < nb_values; threshold_index++)
@@ -106,10 +116,8 @@ class DataThreshold extends GenericData
       }
 
       used_positions[best_position] = true;
-      ordered_thresholds[best_position] = threshold_index;
+      cached_interleaved_thresholds[best_position] = threshold_index;
     }
-
-    return ordered_thresholds[wrapped];
   }
 
 }
