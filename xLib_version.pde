@@ -1,12 +1,16 @@
 String get_xlib_version()
 {
-  return "3.3.0";
+  return "3.4.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.4.0] - 2026-06-03
+ - curved_lines: nouveau projet — courbes offset basées sur Catmull-Rom splines
+ - xLib_Polyline: ajout dans projects.ps1 de curved_lines
 
  ## [3.3.0] - 2026-05-28
  - xLib_ThresholdData: new file — DataThreshold + ThresholdGUI shared between image_lines and image_contours
