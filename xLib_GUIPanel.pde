@@ -243,7 +243,7 @@ class GUIPanel implements ControlListener
   {
     Textlabel l = cp5.addTextlabel("Label" + this.pageName + indexControler)
       .setText(content)
-      .setPosition(xPos, yPos)
+      .setPosition(xPos, yPos+5)
       .setSize(width, heightCtrl)
       .setColorValue(LabelsHandler.label_color)
       .moveTo(pageName);
@@ -262,7 +262,7 @@ class GUIPanel implements ControlListener
 
     Textlabel l = cp5.addTextlabel("Label" + this.pageName + indexControler)
       .setText(content)
-      .setPosition(xPos, yPos)
+      .setPosition(xPos, yPos+5)
       .setSize(100, heightCtrl)
       .setColorValue(LabelsHandler.label_color)
       .moveTo(pageName);

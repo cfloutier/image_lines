@@ -22,7 +22,9 @@ class GenericData
   public void setInt(String name, int value) {
 
     try {
-      Field field = this.getClass().getDeclaredField(name); // Get the field by name
+      Field field = findFieldInHierarchy(this.getClass(), name);
+      if (field == null)
+        throw new NoSuchFieldException(name);
       field.setAccessible(true); // Allow access to private fields if necessary
 
       if (field.getType() == int.class) { // Check if the field is of type int
@@ -48,13 +50,14 @@ class GenericData
     if (json == null) return;
 
     // load primitive fields using reflection
-    Field[] fields = this.getClass().getDeclaredFields();
+    Field[] fields = getAllInstanceFields(this.getClass());
 
     for (Field field : fields) {
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
         if (name == "changed" || name =="this$0" ||
+          name == "chapter_name" || name == "chapters" ||
             java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
           continue;
@@ -88,13 +91,14 @@ class GenericData
     JSONObject json = new JSONObject();
 
     // save primitive fields using reflection
-    Field[] fields = this.getClass().getDeclaredFields();
+    Field[] fields = getAllInstanceFields(this.getClass());
 
     for (Field field : fields) {
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
         if (name == "changed" || name =="this$0" ||
+          name == "chapter_name" || name == "chapters" ||
             java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
 
@@ -131,12 +135,13 @@ class GenericData
 
   void CopyFrom(GenericData src)
   {
-    Field[] fields = this.getClass().getDeclaredFields();
+    Field[] fields = getAllInstanceFields(this.getClass());
     for (Field field : fields) {
       try {
         field.setAccessible(true); // Allow access to private fields if necessary
         String name = field.getName();
         if (name == "changed" || name =="this$0" ||
+            name == "chapter_name" || name == "chapters" ||
             java.lang.reflect.Modifier.isStatic(field.getModifiers()))
         {
           continue;
@@ -175,5 +180,41 @@ class GenericData
         chapter.CopyFrom(src_chapter);
       }
     }
+  }
+
+  private Field[] getAllInstanceFields(Class<?> cls)
+  {
+    ArrayList<Field> all = new ArrayList<Field>();
+    Class<?> cur = cls;
+    while (cur != null)
+    {
+      Field[] own = cur.getDeclaredFields();
+      for (Field f : own)
+      {
+        all.add(f);
+      }
+      cur = cur.getSuperclass();
+    }
+
+    Field[] result = new Field[all.size()];
+    for (int i = 0; i < all.size(); i++)
+      result[i] = all.get(i);
+    return result;
+  }
+
+  private Field findFieldInHierarchy(Class<?> cls, String name)
+  {
+    Class<?> cur = cls;
+    while (cur != null)
+    {
+      try {
+        return cur.getDeclaredField(name);
+      }
+      catch (NoSuchFieldException e)
+      {
+        cur = cur.getSuperclass();
+      }
+    }
+    return null;
   }
 }

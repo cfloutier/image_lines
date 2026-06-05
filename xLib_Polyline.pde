@@ -284,11 +284,7 @@ class Polyline
   //   3. If the miter distance exceeds miterLimit * |dist|, a bevel is used instead.
   // Closed polylines (islands) are handled correctly.
   // The legacy removeSpikes flag is kept for compatibility but ignored.
-  Polyline offset(float dist) { return offset(dist, false); }
-  Polyline offset(float dist, boolean ignoredLegacyFlag)
-  {
-    return offset(dist, 4.0);
-  }
+  Polyline offset(float dist) { return offset(dist, 4.0); }
   Polyline offset(float dist, float miterLimit)
   {
     int n = points.size();

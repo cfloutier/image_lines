@@ -1,12 +1,18 @@
 String get_xlib_version()
 {
-  return "3.4.0";
+  return "3.5.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.5.0] - 2026-06-04
+ - xLib_GenericData: getDeclaredFields() / getDeclaredField() remplacés par getAllInstanceFields() / findFieldInHierarchy()
+   parcourent toute la hiérarchie de classes (super inclus) — fix sérialisation, désérialisation et CopyFrom pour les classes dérivées de GenericData
+ - xLib_GenericData: champs "chapter_name" et "chapters" exclus de la sérialisation / CopyFrom (évite la corruption JSON)
+ - xLib_GenericData: setInt() utilise désormais findFieldInHierarchy() — fix affectation de champs hérités
 
  ## [3.4.0] - 2026-06-03
  - curved_lines: nouveau projet — courbes offset basées sur Catmull-Rom splines
