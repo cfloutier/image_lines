@@ -258,7 +258,7 @@ class GUIPanel implements ControlListener
 
   Textlabel addLabel(String content)
   {
-    yPos += 10;
+    // yPos += 4;
 
     Textlabel l = cp5.addTextlabel("Label" + this.pageName + indexControler)
       .setText(content)

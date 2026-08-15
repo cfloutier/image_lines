@@ -73,12 +73,9 @@ void setupControls()
 
 void draw()
 {
-  start_draw();
-
-  data.image.buildTransformedImage();
-  if (data.image.draw)
-    data.image.draw(data.image.imageAlpha);
-
+  // Rebuild lines and refresh export scale/orientation BEFORE start_draw(), so that
+  // an export triggered right after a data change sizes its canvas from up-to-date values
+  // (start_draw() reads file_ui.export_landscape / export_scale to size the export canvas).
   if (data.any_change())
   {
     generator.buildLines();
@@ -86,6 +83,12 @@ void draw()
     file_ui.updateExportScale(threshold_filter.group.getBoundingBox(data.page.clipping, data.page.clip_width, data.page.clip_height));
     data.reset_all_changes();
   }
+
+  start_draw();
+
+  data.image.buildTransformedImage();
+  if (data.image.draw)
+    data.image.draw(data.image.imageAlpha);
 
   strokeWeight(data.style.lineWidth);
   stroke(data.style.lineColor.col);

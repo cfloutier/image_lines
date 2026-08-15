@@ -1,12 +1,32 @@
 String get_xlib_version()
 {
-  return "3.5.0";
+  return "3.6.1";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.6.1] - 2026-08-15
+ - xLib_ExportUtils: writeSVGDirect() (both overloads) reads file_ui.export_landscape instead of recomputing its
+   own local bbox-derived orientation — keeps orientation and export_scale tied to the same source, avoiding a
+   mismatch between the exported page's orientation and the scale used to fit the drawing on it
+ - image_lines: draw() now refreshes lines + updateExportScale() BEFORE start_draw() instead of after — previously
+   an export triggered right after a data change sized its canvas from the previous frame's stale orientation/scale
+   (fix should be mirrored in other xLib-consuming projects with the same any_change()-after-start_draw() ordering)
+
+ ## [3.6.0] - 2026-08-15
+ - xLib_ExportUtils: removed the -90° auto-rotation of the drawing at export time (shouldRotateForExport() / export_should_rotate deleted)
+   The plotter now handles orientation itself, so it no longer needs to be baked into the SVG.
+ - xLib_ExportUtils: getPaperDimensions() gained a landscape parameter — the exported page orientation (portrait/landscape)
+   now follows the drawing's aspect ratio instead of always exporting a rotated portrait page
+ - xLib_ExportUtils: calculateExportScale() simplified — no longer takes a shouldRotate parameter
+ - xLib_ExportUtils: centeredToMM() simplified — no longer takes a rot parameter
+ - xLib_ExportUtils: postProcessSVGForPlotter() takes a landscape parameter instead of re-deriving portrait dimensions
+   (Processing fallback renderer path); rotate() transform regex removed (no longer emitted)
+ - xLib_FileUI: FileGUI.export_should_rotate renamed to export_landscape; start_draw() sizes the export canvas
+   using the landscape-aware paper dimensions instead of rotating the content with rotate(-PI/2)
 
  ## [3.5.0] - 2026-06-04
  - xLib_GenericData: getDeclaredFields() / getDeclaredField() remplacés par getAllInstanceFields() / findFieldInHierarchy()

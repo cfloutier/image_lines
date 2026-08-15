@@ -7,7 +7,7 @@ class DataPage extends GenericData
   boolean clipping = false;
   float clip_width = 800;
   float clip_height = 600;
-  
+
   int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2, 4: Raisin (50x65 cm)
   int margin = MARGIN_3CM;  // 0: 0cm, 1: 1cm, 2: 2cm, 3: 3cm
 
@@ -25,10 +25,10 @@ class FileGUI extends GUIPanel
 
   DataGlobal global_data;
   DataPage page_data;
-  
+
   BoundingBox last_bbox = null;
   float export_scale = 1.0;
-  boolean export_should_rotate = false;
+  boolean export_landscape = false;  // page orientation follows the drawing's aspect ratio
 
   // Set one of these in sketch setup() to enable direct SVG export:
   //   export_group  → PolylineGroup  (spiral, perlin_mountains, image_lines)
@@ -91,7 +91,7 @@ class FileGUI extends GUIPanel
 
   Slider clip_slider_width;
   Slider clip_slider_height;
-  
+
   RadioButton paper_format_radio;
   RadioButton margin_radio;
 
@@ -104,16 +104,13 @@ class FileGUI extends GUIPanel
     addButton("Load").plugTo(this, "LoadJson");
     addButton("Save as...").plugTo(this, "SaveJson");
     addButton("Save").plugTo(this, "Save");
-
+    xPos += 10;
+    addButton("Export SVG").plugTo(this, "ExportSVG");
     nextLine();
 
-    addLabel("Export : ");
+    // addButton("SVG (Processing)").plugTo(this, "ExportSVGProcessing");
 
-    addButton("SVG direct").plugTo(this, "ExportSVG");
-    addButton("SVG (Processing)").plugTo(this, "ExportSVGProcessing");
-
-    nextLine();
-    addLabel("Page : ");
+    addLabel("Scale (applied only on screen) :");
     scale_slider = new ScaleSlider(cp5, "Scale");
 
     scale_slider.setPosition(xPos, yPos)
@@ -131,20 +128,19 @@ class FileGUI extends GUIPanel
 
     nextLine();
 
-    clip_toggle = addToggle("clipping", "Clip", page_data);
-
-    clip_slider_width = addSlider("clip_width", "Clip width", 0, 2000);
-    clip_slider_height = addSlider("clip_height", "Clip height", 0, 2000);
-
-    if (!show_clipping)
+    if (show_clipping)
     {
-      clip_toggle.hide();
-      clip_slider_width.hide();
-      clip_slider_height.hide();
+      addLabel("Clipping : ");
+      // clip_toggle.hide();
+      // clip_slider_width.hide();
+      // clip_slider_height.hide();
+      clip_toggle = addToggle("clipping", "Clip", page_data);
+      clip_slider_width = addSlider("clip_width", "Clip width", 0, 2000);
+      clip_slider_height = addSlider("clip_height", "Clip height", 0, 2000);
+      nextLine();
     }
-    
-    nextLine();
-    addLabel("Export Format :");
+
+    addLabel("Export Page size :");
     ArrayList<String> paper_formats = new ArrayList<String>();
     paper_formats.add("None");
     paper_formats.add("A4");
@@ -152,7 +148,7 @@ class FileGUI extends GUIPanel
     paper_formats.add("A2");
     paper_formats.add("Raisin");
     paper_format_radio = addRadio("paper_format", paper_formats);
-    
+
     // nextLine();
     addLabel("Margins :");
     ArrayList<String> margins = new ArrayList<String>();
@@ -214,10 +210,18 @@ class FileGUI extends GUIPanel
       String name = data.name.equals("") ? "default" : data.name;
       String fmt  = "";
       switch (page_data.paper_format) {
-        case PAPER_A4: fmt = "_A4"; break;
-        case PAPER_A3: fmt = "_A3"; break;
-        case PAPER_A2: fmt = "_A2"; break;
-        case PAPER_RAISIN: fmt = "_Raisin"; break;
+      case PAPER_A4:
+        fmt = "_A4";
+        break;
+      case PAPER_A3:
+        fmt = "_A3";
+        break;
+      case PAPER_A2:
+        fmt = "_A2";
+        break;
+      case PAPER_RAISIN:
+        fmt = "_Raisin";
+        break;
       }
       String filepath = sketchPath("Export/" + name + fmt + "_"
         + year() + "-" + month() + "-" + day()
@@ -225,7 +229,7 @@ class FileGUI extends GUIPanel
       println("[SVG] " + filepath);
       long t0 = System.currentTimeMillis();
       if (use_shapes) writeSVGDirect(filepath, export_shapes, page_data.paper_format);
-      else            writeSVGDirect(filepath, export_group,  page_data.paper_format);
+      else            writeSVGDirect(filepath, export_group, page_data.paper_format);
       last_save_duration = (int)(System.currentTimeMillis() - t0);
       println("[SVG] Export completed in " + StringUtils.formatDuration(last_save_duration));
     } else {
@@ -241,14 +245,14 @@ class FileGUI extends GUIPanel
   {
     scale_slider.setValue(0);
   }
-  
+
   // Update export scale based on bounding box and paper format
   void updateExportScale(BoundingBox bbox)
   {
     last_bbox = bbox;
-    export_should_rotate = shouldRotateForExport(bbox);
-    export_scale = calculateExportScale(bbox, data.page.paper_format, data.page.margin, export_should_rotate);
-    // println("[FileUI] updateExportScale -> scale=" + export_scale + " rotate=" + export_should_rotate + " paper=" + data.page.paper_format);
+    export_landscape = (bbox != null && bbox.getWidth() > bbox.getHeight());
+    export_scale = calculateExportScale(bbox, data.page.paper_format, data.page.margin);
+    // println("[FileUI] updateExportScale -> scale=" + export_scale + " landscape=" + export_landscape + " paper=" + data.page.paper_format);
   }
 }
 
@@ -358,8 +362,9 @@ void start_draw()
     float newheight = height;
 
     // Si un format papier est sélectionné, utiliser ses dimensions pour le canvas SVG/PDF
+    // L'orientation de la page suit le ratio du dessin (pas de rotation du contenu)
     if (data.page.paper_format != PAPER_NONE) {
-      float[] paper_dims_mm = getPaperDimensions(data.page.paper_format);
+      float[] paper_dims_mm = getPaperDimensions(data.page.paper_format, file_ui.export_landscape);
       newWidth = mmToSvgPx(paper_dims_mm[0]);
       newheight = mmToSvgPx(paper_dims_mm[1]);
     }
@@ -367,11 +372,17 @@ void start_draw()
     // Add paper format to filename
     String format_suffix = "";
     switch(data.page.paper_format) {
-      case PAPER_A4: format_suffix = "_A4"; break;
-      case PAPER_A3: format_suffix = "_A3"; break;
-      case PAPER_A2: format_suffix = "_A2"; break;
+    case PAPER_A4:
+      format_suffix = "_A4";
+      break;
+    case PAPER_A3:
+      format_suffix = "_A3";
+      break;
+    case PAPER_A2:
+      format_suffix = "_A2";
+      break;
     }
-    
+
     export_fileName = "Export/"+ name + format_suffix + "_" + year() + "-" + month() + "-" + day() + "_" + hour() + "-" + minute() + "-" + second();
 
     if (mode == 0)
@@ -404,10 +415,6 @@ void start_draw()
       current_graphics.translate(newWidth / 2, newheight / 2);
     }
     current_graphics.scale(active_scale, active_scale);
-    if (file_ui.export_should_rotate) {
-      current_graphics.rotate(-PI/2);
-    }
-
   } else {
 
     current_graphics = g;
@@ -440,7 +447,7 @@ void end_draw()
     file_ui.last_save_duration = duration;
     println("Save completed in " + StringUtils.formatDuration(duration));
     if (mode == 2) {
-      postProcessSVGForPlotter(export_fileName, data.page.paper_format);
+      postProcessSVGForPlotter(export_fileName, data.page.paper_format, file_ui.export_landscape);
     }
     _record = false;
   } else {
