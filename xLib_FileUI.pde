@@ -19,6 +19,11 @@ class DataPage extends GenericData
 
 FileGUI file_ui;
 
+interface ExportBusyGuard
+{
+  boolean isBusy();
+}
+
 class FileGUI extends GUIPanel
 {
   boolean show_clipping;
@@ -36,6 +41,11 @@ class FileGUI extends GUIPanel
   // export_shapes is checked first; falls back to export_group, then Processing renderer.
   PolylineGroup export_group  = null;
   ShapesGroup   export_shapes = null;
+
+  // Optional: set in sketch setup() if line generation is async/incremental and export
+  // should be refused while it's still running (e.g. trace_3d's HLR builder). Left null
+  // by default - projects that never set it are never blocked.
+  ExportBusyGuard export_busy_guard = null;
 
   int last_save_duration = -1;
 
@@ -201,6 +211,11 @@ class FileGUI extends GUIPanel
 
   void ExportSVG()
   {
+    if (export_busy_guard != null && export_busy_guard.isBusy()) {
+      println("[SVG direct] Export refused: still computing.");
+      return;
+    }
+
     boolean use_shapes = export_shapes != null && export_shapes.totalCount() > 0;
     boolean use_group  = export_group  != null && export_group.size()  > 0;
 

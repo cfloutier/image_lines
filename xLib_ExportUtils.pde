@@ -213,8 +213,12 @@ float[] centeredToMM(float cx, float cy, float s, float K,
 // - Clipping is applied when data.page.clipping is true
 // - Progress is printed to the console every 10 %
 void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) {
-  // Auto-center: map bbox center to page center
-  BoundingBox bbox = polylines.getBoundingBox(false, 0, 0);
+  final boolean clipping = data.page.clipping;
+  final float   clip_w   = data.page.clip_width;
+  final float   clip_h   = data.page.clip_height;
+
+  // Auto-center: map bbox center to page center (respect clipping when enabled)
+  BoundingBox bbox = polylines.getBoundingBox(clipping, clip_w, clip_h);
   float bcx = (bbox.minX + bbox.maxX) / 2.0;
   float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
@@ -234,10 +238,6 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   final float s       = file_ui.export_scale;          // drawing units → SVG px
   // stroke-width in mm: lineWidth (drawing units) × scale (units→px) × K (px→mm)
   final float stroke_mm = data.style.lineWidth * s * K;
-
-  final boolean clipping = data.page.clipping;
-  final float   clip_w   = data.page.clip_width;
-  final float   clip_h   = data.page.clip_height;
 
   int total = polylines.size();
   println("[SVG direct] " + total + " polylines  |  " + (int)w_mm + "x" + (int)h_mm + " " + dim_u +
@@ -288,11 +288,10 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
       int segs = 0;
       for (int i = 0; i < pl.size() - 1; i++) {
         PVector a = pl.get(i), b = pl.get(i + 1);
-        float ax = a.x - bcx, ay = a.y - bcy;
-        float bx = b.x - bcx, by = b.y - bcy;
-        if (clipLineToCenteredRect(ax, ay, bx, by, 0, 0, clip_w, clip_h, clipOut)) {
-          float[] p0 = centeredToMM(clipOut[0], clipOut[1], s, K, cx_mm, cy_mm);
-          float[] p1 = centeredToMM(clipOut[2], clipOut[3], s, K, cx_mm, cy_mm);
+        // Clip in original drawing space (centered on 0,0), then apply export centering.
+        if (clipLineToCenteredRect(a.x, a.y, b.x, b.y, 0, 0, clip_w, clip_h, clipOut)) {
+          float[] p0 = centeredToMM(clipOut[0] - bcx, clipOut[1] - bcy, s, K, cx_mm, cy_mm);
+          float[] p1 = centeredToMM(clipOut[2] - bcx, clipOut[3] - bcy, s, K, cx_mm, cy_mm);
           sb.append(String.format(java.util.Locale.US,
             "M %.4f,%.4f L %.4f,%.4f ", p0[0], p0[1], p1[0], p1[1]));
           segs++;
@@ -321,7 +320,11 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
 // Dots are rendered as zero-length lines with round linecap — same stroke-width as polylines.
 // This is the AxiDraw convention: a capped zero-length stroke = filled dot of diameter=stroke-width.
 void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
-  BoundingBox bbox = shapes.getBoundingBox(false, 0, 0);
+  final boolean clipping = data.page.clipping;
+  final float   clip_w   = data.page.clip_width;
+  final float   clip_h   = data.page.clip_height;
+
+  BoundingBox bbox = shapes.getBoundingBox(clipping, clip_w, clip_h);
   float bcx = (bbox.minX + bbox.maxX) / 2.0;
   float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
@@ -340,10 +343,6 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
   final float   cy_mm     = h_mm / 2.0;
   final float s         = file_ui.export_scale;
   final float stroke_mm = data.style.lineWidth * s * K;
-
-  final boolean clipping = data.page.clipping;
-  final float   clip_w   = data.page.clip_width;
-  final float   clip_h   = data.page.clip_height;
 
   int total = shapes.totalCount();
   println("[SVG direct] " + shapes.polylineCount() + " polylines, " + shapes.dotCount() + " dots  |  " +
@@ -387,11 +386,10 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
       int segs = 0;
       for (int i = 0; i < pl.size() - 1; i++) {
         PVector a = pl.get(i), b = pl.get(i + 1);
-        float ax = a.x - bcx, ay = a.y - bcy;
-        float bx = b.x - bcx, by = b.y - bcy;
-        if (clipLineToCenteredRect(ax, ay, bx, by, 0, 0, clip_w, clip_h, clipOut)) {
-          float[] p0 = centeredToMM(clipOut[0], clipOut[1], s, K, cx_mm, cy_mm);
-          float[] p1 = centeredToMM(clipOut[2], clipOut[3], s, K, cx_mm, cy_mm);
+        // Clip in original drawing space (centered on 0,0), then apply export centering.
+        if (clipLineToCenteredRect(a.x, a.y, b.x, b.y, 0, 0, clip_w, clip_h, clipOut)) {
+          float[] p0 = centeredToMM(clipOut[0] - bcx, clipOut[1] - bcy, s, K, cx_mm, cy_mm);
+          float[] p1 = centeredToMM(clipOut[2] - bcx, clipOut[3] - bcy, s, K, cx_mm, cy_mm);
           sb.append(String.format(java.util.Locale.US,
             "M %.4f,%.4f L %.4f,%.4f ", p0[0], p0[1], p1[0], p1[1]));
           segs++;
@@ -407,8 +405,10 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
 
   // ── Dots: zero-length line with round linecap = filled dot (AxiDraw convention) ──
   for (Dot d : shapes.dots) {
-    float px = d.pos.x - bcx, py = d.pos.y - bcy;
+    float px = d.pos.x, py = d.pos.y;
     if (clipping && !pointInClipRect(px, py, 0, 0, clip_w, clip_h)) continue;
+    px -= bcx;
+    py -= bcy;
     float[] mm = centeredToMM(px, py, s, K, cx_mm, cy_mm);
     out.println(String.format(java.util.Locale.US,
       "<line x1=\"%.4f\" y1=\"%.4f\" x2=\"%.4f\" y2=\"%.4f\" />",

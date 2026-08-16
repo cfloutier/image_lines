@@ -1,6 +1,6 @@
 String get_xlib_version()
 {
-  return "3.6.1";
+  return "3.11.1";
 }
 
 
@@ -8,15 +8,19 @@ String get_xlib_version()
 
  # CHANGELOG
 
- ## [3.6.1] - 2026-08-15
+ ## [3.11.1] - 2026-08-16
  - xLib_ExportUtils: writeSVGDirect() (both overloads) reads file_ui.export_landscape instead of recomputing its
    own local bbox-derived orientation — keeps orientation and export_scale tied to the same source, avoiding a
    mismatch between the exported page's orientation and the scale used to fit the drawing on it
  - image_lines: draw() now refreshes lines + updateExportScale() BEFORE start_draw() instead of after — previously
    an export triggered right after a data change sized its canvas from the previous frame's stale orientation/scale
    (fix should be mirrored in other xLib-consuming projects with the same any_change()-after-start_draw() ordering)
+ - Merged with main (3.10.0, trace_3d/3D camera line of work): combined with main's independent clip/centering fix
+   below — clipLineToCenteredRect() must run in raw drawing space (matching clip_width/clip_height, which are not
+   relative to the bbox center) before subtracting bcx/bcy, not after; bbox itself is now clip-aware too
+   (getBoundingBox(clipping, clip_w, clip_h)) so a clipped export centers on what's actually visible
 
- ## [3.6.0] - 2026-08-15
+ ## [3.11.0] - 2026-08-15
  - xLib_ExportUtils: removed the -90° auto-rotation of the drawing at export time (shouldRotateForExport() / export_should_rotate deleted)
    The plotter now handles orientation itself, so it no longer needs to be baked into the SVG.
  - xLib_ExportUtils: getPaperDimensions() gained a landscape parameter — the exported page orientation (portrait/landscape)
@@ -27,6 +31,62 @@ String get_xlib_version()
    (Processing fallback renderer path); rotate() transform regex removed (no longer emitted)
  - xLib_FileUI: FileGUI.export_should_rotate renamed to export_landscape; start_draw() sizes the export canvas
    using the landscape-aware paper dimensions instead of rotating the content with rotate(-PI/2)
+ (originally versioned 3.6.0/3.6.1 before merge — renumbered to 3.11.0/3.11.1 to follow main's 3.10.0,
+ since main independently used 3.6.0 onward for the trace_3d 3D-camera line of work below)
+
+ ## [3.10.0] - 2026-08-14
+ - xLib_Camera3D: ajout de PROJECTION_NEAR_Z + clipSegmentToNearPlane() — clippe les segments
+   projetes contre un plan proche (1 unite monde), evite les coordonnees ecran instables
+   (division par z quasi-nul) qui faisaient exploser le bounding-box auto-fit et le nombre
+   d'echantillons par arete
+ - xLib_Box3D: appendProjectedEdges() utilise desormais clipSegmentToNearPlane() par arete
+ - trace_3d: LineBuilder.projectSeamEdges() applique le meme clip proche ; nouveau message
+   d'avertissement plein ecran quand Page.clipping est desactive (le fit d'echelle export
+   n'est pas garanti sans lui - non corrige plus avant, cf. commentaire dans trace_3d.pde)
+ - xLib_FileUI: FileGUI.ExportSVG() ne reference plus directement lineBuilder (fuite
+   specifique a trace_3d qui cassait la compilation des autres projets) - remplace par un
+   hook generique optionnel ExportBusyGuard (export_busy_guard), laisse a null par defaut
+
+ ## [3.9.0] - 2026-08-13
+ - xLib_CameraData: suppression de focal_distance (et FOCAL_DISTANCE_MIN/MAX) — la focale perspective
+   repose desormais uniquement sur fov, via focal = (height * 0.5) / tan(radians(fov) * 0.5), la meme
+   relation qu'utilise perspective() de Processing en interne (aligne le modele de camera manuel 2D
+   sur un modele de vraie camera 3D, en vue d'un futur rendu 3D natif)
+ - xLib_Camera3D: CameraGUI perd le slider Focal Distance (fov reprend sa place en mode Perspective)
+
+ ## [3.8.0] - 2026-08-13
+ - xLib_BVH3D: ajout de queryOverlaps() — requête de recouvrement AABB (broad-phase), en plus du any-hit rayon existant
+ - xLib_Box3D: ajout de FACE_IDX (les 6 faces en quads) pour la détection d'intersections
+ - xLib_BoxIntersection: nouveau fichier — calcule les segments de "couture" où deux Box3D se croisent
+   (intersection de plans face/face + double découpage rectangulaire), sans CSG solide ni face capping
+ - xLib_Mesh: EdgeProjected porte désormais un second index de propriétaire optionnel (ownerOccluderIndexB,
+   -1 par défaut) — une arête de couture appartient à deux boîtes à la fois, les deux profitent du seuil
+   tolérant d'auto-occlusion
+ - trace_3d: LineBuilder construit et met en cache les seam edges (recalculées seulement quand les occludeurs
+   changent, jamais au simple drag caméra) ; nouveau toggle Occlusion.seam_edges_enabled (off par défaut, coût
+   O(paires qui se recouvrent x 36 tests de faces))
+
+ ## [3.7.0] - 2026-08-13
+ - xLib_BVH3D: nouveau fichier — BVH générique (broad-phase spatial), traversée "any-hit" itérative sans allocation
+ - xLib_Box3D: ajout de intersectRaySlab() (intersection rayon/OBB exacte, méthode des slabs en repère local, gère la rotation),
+   computeWorldAABB(), getWorldGeometricCenter(), getDiagonal() — suppression de TRI_IDX et getProjectedVertices() (plus utilisés)
+ - xLib_Mesh: TriangleProjected supprimé ; EdgeProjected porte désormais les coordonnées monde + un index d'occludeur propriétaire ;
+   nouvelle classe OccluderBox (bbox monde + centre + diagonale + epsilon) ; Mesh.appendProjectedOcclusionGeometry()
+   remplacé par buildOccluder() + appendProjectedEdges() (sépare la géométrie monde, camera-indépendante, de la projection écran)
+ - xLib_CameraData: ajout de unprojectPoint() — inverse exact de projectPointWithDepth() (écran+profondeur -> monde),
+   perspective et ortho
+ - trace_3d: LineBuilder remplace le HLR par rastérisation z-buffer par un HLR analytique (ray-casting objet-space vers la
+   caméra + BVH, intersection rayon-boîte exacte, bissection pour les points de coupure), corrige les artefacts de visibilité
+   près des silhouettes et l'auto-occlusion (chord length au lieu du tEntry seul) ; DataOcclusion perd zbuffer_scale/depth_bias
+   au profit de bisection_iterations/self_occlusion_eps_scale
+
+ ## [3.6.0] - 2026-07-17
+ - xLib_Mesh: nouveau fichier avec Mesh (classe abstraite) + EdgeProjected + TriangleProjected
+ - xLib_Box3D: nouveau fichier, Box3D herite de Mesh et encapsule sa decomposition edges/triangles
+ - xLib_Camera3D: nouveau fichier avec CameraFrame, ProjectedPoint et interface CameraProjector3D
+ - xLib_CameraData: nouveau fichier, CameraData implemente CameraProjector3D
+ - xLib_MainPanel: ajout de mouseWheel(event) en override optionnel + forwarding global mouseWheel vers dataGui
+ - sync-tools/projects.ps1: ajout de trace_3d dans la liste des projets synchronises
 
  ## [3.5.0] - 2026-06-04
  - xLib_GenericData: getDeclaredFields() / getDeclaredField() remplacés par getAllInstanceFields() / findFieldInHierarchy()

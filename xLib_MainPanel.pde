@@ -125,6 +125,13 @@ class MainPanel
       dragging_panel = null;
     }
   }
+
+  void mouseWheel(processing.event.MouseEvent event)
+  {
+    // optional override in subclasses
+    if (event == null)
+      return;
+  }
 }
 
 void mousePressed() {
@@ -137,4 +144,8 @@ void mouseDragged() {
 
 void mouseReleased() {
   dataGui.mouseReleased();
+}
+
+void mouseWheel(processing.event.MouseEvent event) {
+  dataGui.mouseWheel(event);
 }
