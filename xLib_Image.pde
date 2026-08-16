@@ -189,6 +189,7 @@ class ImageGUI extends GUIPanel
     //File file = new File("C:/dev/__tracer/stipplegen/MyStippleGen/sourcesImages/");
 
     selectInput("Select a file to process:", "imgFileSelected", dataFile(data.source_file));  // Opens file chooser
+    bringNativeFileDialogToFront();
   } //End Load File
 
   void update_ui()

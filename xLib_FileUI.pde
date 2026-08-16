@@ -1,5 +1,40 @@
 import java.util.Locale;
 
+// On some Processing renderer/OS combinations (seen with P3D/JOGL sketches), the native
+// file dialog opened by selectInput()/selectOutput() appears behind the main window - which
+// can also auto-minimize - instead of getting focus. This doesn't happen with the default
+// (non-OpenGL) renderer. Call right after selectInput()/selectOutput() to force the dialog
+// to front once AWT has finished creating it; polls briefly since dialog creation isn't
+// synchronous with the selectInput() call returning.
+// Note: the very first LoadJson()/SaveJson() call of a run can still open the dialog behind
+// the main window even with this fix (tried a warmupNativeFileDialog() companion to
+// pre-create AWT's native FileDialog peer at setup() time, but it didn't help - reverted).
+// Every call after the first one is fixed correctly.
+void bringNativeFileDialogToFront() {
+  // First call after sketch startup is much slower to show the dialog (class loading /
+  // JIT warmup for AWT FileDialog + the Swing Timer/ActionListener machinery itself) -
+  // seen taking longer than a 1.2s poll budget on the very first LoadJson()/SaveJson().
+  // Subsequent calls find the dialog almost immediately, but keep a generous budget
+  // throughout since it's cheap to poll and just stops as soon as the dialog is found.
+  final javax.swing.Timer t = new javax.swing.Timer(150, null);
+  final int[] tries = {0};
+  t.addActionListener(new java.awt.event.ActionListener() {
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+      for (java.awt.Window w : java.awt.Window.getWindows()) {
+        if (w.isShowing() && (w instanceof java.awt.FileDialog || w.getClass().getName().contains("FileChooser"))) {
+          w.toFront();
+          w.requestFocus();
+          t.stop();
+          return;
+        }
+      }
+      if (++tries[0] >= 40) t.stop();  // give up after ~6s - dialog may have been cancelled instantly
+    }
+  });
+  t.setRepeats(true);
+  t.start();
+}
+
 class DataPage extends GenericData
 {
   float global_scale = 1;
@@ -183,6 +218,7 @@ class FileGUI extends GUIPanel
     println("LoadJson ");
     stop_compute = true;
     selectInput("Select data file ", "loadSelected", dataFile("../Settings/default.json")  );
+    bringNativeFileDialogToFront();
   }
 
   void SaveJson()
@@ -190,6 +226,7 @@ class FileGUI extends GUIPanel
     println("SaveJson ");
     stop_compute = true;
     selectInput("Save data file ", "saveSelected", dataFile(default_path()));
+    bringNativeFileDialogToFront();
   }
 
   void Save()
