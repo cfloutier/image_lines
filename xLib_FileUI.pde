@@ -235,6 +235,7 @@ class FileGUI extends GUIPanel
     {
       stop_compute = true;
       data.SaveSettings(data.settings_path);
+      stop_compute = false;
     }
   }
 
@@ -328,6 +329,8 @@ void saveSelected(File selection)
 
     file_ui.setGUIValues();
   }
+
+  stop_compute = false;  // dialog closed (picked or cancelled) - resume normal recompute
 }
 
 
@@ -366,6 +369,8 @@ void loadSelected(File selection)
     data.LoadSettings(selection.getAbsolutePath());
     dataGui.setGUIValues();
   }
+
+  stop_compute = false;  // dialog closed (picked or cancelled) - resume normal recompute
 }
 
 boolean _record = false;

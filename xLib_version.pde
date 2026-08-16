@@ -1,12 +1,21 @@
 String get_xlib_version()
 {
-  return "3.12.0";
+  return "3.12.1";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.12.1] - 2026-08-16
+ - xLib_FileUI: fixed stop_compute never being reset to false — LoadJson()/SaveJson()/Save()
+   set it to true but nothing ever cleared it (not even on dialog cancel), so after the first
+   Load/Save of a run it stayed stuck true forever. Harmless everywhere stop_compute was never
+   actually read (every other project) but trace_3d's own draw() gates its mesh/line rebuild
+   on !stop_compute, so this permanently froze the 3D render after any Load/Save while GUI/style
+   changes kept working (style isn't gated by stop_compute). Now reset in loadSelected()/
+   saveSelected() (both the picked-a-file and cancelled paths) and at the end of Save().
 
  ## [3.12.0] - 2026-08-16
  - Removed xLib_Box3D, xLib_BoxIntersection, xLib_BVH3D, xLib_Camera3D, xLib_CameraData, xLib_Mesh
