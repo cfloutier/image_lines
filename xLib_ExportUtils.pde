@@ -46,6 +46,14 @@ class BoundingBox
     minY = min(minY, p.y);
     maxY = max(maxY, p.y);
   }
+
+  // Merges another bounding box into this one. No-op if other is still empty
+  // (minX > maxX, its default state before any addPoint call).
+  void addBoundingBox(BoundingBox other) {
+    if (other.minX > other.maxX) return;
+    addPoint(new PVector(other.minX, other.minY));
+    addPoint(new PVector(other.maxX, other.maxY));
+  }
 }
 
 // Get paper dimensions in mm based on format (portrait orientation)

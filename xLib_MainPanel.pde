@@ -25,10 +25,16 @@ class MainPanel
 
   void setGUIValues()
   {
+    // Pushing data -> UI must not be mistaken for a user edit: Controller.setValue()
+    // broadcasts a ControlEvent like a real interaction would, which would otherwise
+    // loop back through GUIPanel.controlEvent() -> onUIChanged() and mark that
+    // controller's own chapter "changed" again right after we just synced it from data.
+    cp5.setBroadcast(false);
     for (GUIPanel panel : panels)
     {
       panel.setGUIValues();
     }
+    cp5.setBroadcast(true);
   }
 
   void update_ui()
@@ -40,10 +46,19 @@ class MainPanel
     if (!data.any_change() && !data.need_update_ui )
       return;
 
+    // Same reasoning as setGUIValues(): several panels' update_ui() unconditionally
+    // call Controller.setValue() to keep sliders in sync with data (e.g. OcclusionGUI,
+    // CameraGUI) even when that specific panel's own chapter isn't what changed. Left
+    // broadcasting, that would mark their chapter "changed" again on every unrelated
+    // change elsewhere - which used to be harmless (everything triggered a full
+    // rebuild anyway) but breaks a targeted partial rebuild like a face-pattern-only
+    // change once one exists.
+    cp5.setBroadcast(false);
     for (GUIPanel panel : panels)
     {
       panel.update_ui();
     }
+    cp5.setBroadcast(true);
   }
 
   void draw()

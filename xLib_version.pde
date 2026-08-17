@@ -1,12 +1,25 @@
 String get_xlib_version()
 {
-  return "3.12.1";
+  return "3.12.2";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.12.2] - 2026-08-17
+ - xLib_MainPanel: setGUIValues()/update_ui() now wrap their panel loop in
+   cp5.setBroadcast(false)/true. Several panels' update_ui() unconditionally call
+   Controller.setValue() to keep sliders in sync with data (e.g. OcclusionGUI,
+   CameraGUI) even when that specific panel's own chapter isn't what changed - and
+   since update_ui() runs for every panel whenever any chapter changes, and
+   setValue() broadcasts a ControlEvent just like a real user edit, this looped back
+   through GUIPanel.controlEvent() -> onUIChanged() and re-marked that other
+   chapter "changed" right after it was synced. Harmless everywhere every change
+   triggered a full rebuild anyway, but it broke targeted partial rebuilds (trace_3d's
+   face-pattern-only recompute): changing an unrelated tab's own parameter could
+   spuriously flag Occlusion/Camera as changed too and force a full HLR rebuild.
 
  ## [3.12.1] - 2026-08-16
  - xLib_FileUI: fixed stop_compute never being reset to false — LoadJson()/SaveJson()/Save()

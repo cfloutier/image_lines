@@ -555,6 +555,7 @@ class PolylineGroup
   ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 
   void add(Polyline p)  { polylines.add(p); }
+  void addAll(PolylineGroup other) { polylines.addAll(other.polylines); }
   void clear()          { polylines.clear(); }
   int  size()           { return polylines.size(); }
 
