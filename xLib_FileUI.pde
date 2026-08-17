@@ -39,11 +39,23 @@ void bringNativeFileDialogToFront() {
 
 class DataPage extends GenericData
 {
+  static final int ASPECT_NONE  = 0;  // free proportions - width/height independent
+  static final int ASPECT_A4    = 1;
+  static final int ASPECT_16_9  = 2;
+  static final int ASPECT_4_3   = 3;
+  static final int ASPECT_RAISIN = 4;
+
   float global_scale = 1;
 
   boolean clipping = false;
   float clip_width = 800;
   float clip_height = 600;
+  // When not ASPECT_NONE, clip_width/clip_height are kept locked to a fixed ratio -
+  // dragging either slider recomputes the other (see FileGUI.applyAspectRatioFrom*()).
+  int clip_aspect_ratio = ASPECT_NONE;
+  // Orientation for clip_aspect_ratio: true = wide side horizontal (e.g. A4 lying
+  // down), false = wide side vertical (e.g. A4 upright). Irrelevant for ASPECT_NONE.
+  boolean clip_landscape = false;
 
   int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2, 4: Raisin (50x65 cm)
   int margin = MARGIN_3CM;  // 0: 0cm, 1: 1cm, 2: 2cm, 3: 3cm
@@ -51,6 +63,40 @@ class DataPage extends GenericData
   DataPage() {
     super("Page");
   }
+}
+
+// Long-side/short-side ratio (always >= 1) for a clip aspect-ratio preset, or <= 0
+// for ASPECT_NONE (unconstrained). A4/Raisin reuse the exact same mm dimensions as
+// the export paper formats (getPaperDimensions(), xLib_ExportUtils.pde) rather than
+// duplicating the numbers; 16:9 and 4:3 are plain screen-ratio constants.
+float getClipAspectRatioMagnitude(int mode)
+{
+  switch (mode)
+  {
+  case DataPage.ASPECT_A4:
+    float[] a4 = getPaperDimensions(PAPER_A4);
+    return max(a4[0], a4[1]) / min(a4[0], a4[1]);
+  case DataPage.ASPECT_16_9:
+    return 16.0 / 9.0;
+  case DataPage.ASPECT_4_3:
+    return 4.0 / 3.0;
+  case DataPage.ASPECT_RAISIN:
+    float[] raisin = getPaperDimensions(PAPER_RAISIN);
+    return max(raisin[0], raisin[1]) / min(raisin[0], raisin[1]);
+  default:
+    return -1;
+  }
+}
+
+// Actual clip_width/clip_height ratio for a preset+orientation pair: landscape puts
+// the long side on width (ratio >= 1), portrait puts it on height (ratio <= 1).
+// <= 0 for ASPECT_NONE (unconstrained).
+float getClipAspectRatioValue(int mode, boolean landscape)
+{
+  float magnitude = getClipAspectRatioMagnitude(mode);
+  if (magnitude <= 0)
+    return -1;
+  return landscape ? magnitude : (1.0 / magnitude);
 }
 
 
@@ -157,6 +203,8 @@ class FileGUI extends GUIPanel
       clip_toggle.setValue(page_data.clipping);
       clip_slider_width.setValue(page_data.clip_width);
       clip_slider_height.setValue(page_data.clip_height);
+      clip_aspect_radio.activate(page_data.clip_aspect_ratio);
+      clip_landscape_toggle.setValue(page_data.clip_landscape);
     }
     paper_format_radio.activate(page_data.paper_format);
     margin_radio.activate(page_data.margin);
@@ -170,10 +218,14 @@ class FileGUI extends GUIPanel
       {
         clip_slider_width.show();
         clip_slider_height.show();
+        clip_aspect_radio.show();
+        clip_landscape_toggle.show();
       } else
       {
         clip_slider_width.hide();
         clip_slider_height.hide();
+        clip_aspect_radio.hide();
+        clip_landscape_toggle.hide();
       }
     }
   }
@@ -185,9 +237,15 @@ class FileGUI extends GUIPanel
 
   Slider clip_slider_width;
   Slider clip_slider_height;
+  myRadioButton clip_aspect_radio;
+  Toggle clip_landscape_toggle;
 
   RadioButton paper_format_radio;
   RadioButton margin_radio;
+
+  // Guards against the reentrant setValue() call each applyAspectRatioFrom*() makes
+  // on the OTHER clip slider from re-triggering the same logic in a loop.
+  boolean applying_aspect_ratio = false;
 
   void setupControls()
   {
@@ -231,6 +289,18 @@ class FileGUI extends GUIPanel
       clip_toggle = addToggle("clipping", "Clip", page_data);
       clip_slider_width = addSlider("clip_width", "Clip width", 0, 2000);
       clip_slider_height = addSlider("clip_height", "Clip height", 0, 2000);
+      nextLine();
+
+      addLabel("Clip Ratio :");
+      ArrayList<String> clip_ratios = new ArrayList<String>();
+      clip_ratios.add("None");
+      clip_ratios.add("A4");
+      clip_ratios.add("16:9");
+      clip_ratios.add("4:3");
+      clip_ratios.add("Raisin");
+      clip_aspect_radio = addRadio("clip_aspect_ratio", clip_ratios);
+
+      clip_landscape_toggle = addToggle("clip_landscape", "Landscape", page_data);
       nextLine();
     }
 
@@ -653,9 +723,12 @@ class FileGUI extends GUIPanel
   // Routes clicks from the shared file-slot button pool (and the new-filename
   // Textfield's Enter-to-submit event) by controller identity, since plugTo() only
   // supports one fixed method per controller and these are reused across refreshes.
-  // Everything else (Load/Save/Save as/Export/Reset Scale/../Prev/Next/Create/
-  // confirm/cancel, all plugTo()'d individually, plus radios) falls through to the
-  // inherited tab-filtered onUIChanged() behavior unchanged.
+  // Also enforces the clip aspect-ratio lock (see applyAspectRatioFromWidth/Height):
+  // dragging clip_width/clip_height recomputes the other slider when a ratio is
+  // active, and picking a new ratio snaps height to the current width. Everything
+  // else (Load/Save/Save as/Export/Reset Scale/../Prev/Next/Create/confirm/cancel,
+  // paper_format/margin radios) falls through to the inherited tab-filtered
+  // onUIChanged() behavior unchanged.
   public void controlEvent(ControlEvent theEvent)
   {
     if (theEvent.isController())
@@ -674,9 +747,50 @@ class FileGUI extends GUIPanel
         handleNewFilenameSubmitted(new_filename_field.getText());
         return;
       }
+      if (show_clipping && c == clip_slider_width && !applying_aspect_ratio)
+      {
+        applyAspectRatioFromWidth();
+      } else if (show_clipping && c == clip_slider_height && !applying_aspect_ratio)
+      {
+        applyAspectRatioFromHeight();
+      } else if (show_clipping && c == clip_landscape_toggle)
+      {
+        // page_data.clip_landscape is already updated (Toggle is bound directly to
+        // the field) - re-snap height to width under the now-flipped orientation.
+        applyAspectRatioFromWidth();
+      }
     }
 
     super.controlEvent(theEvent);
+
+    if (show_clipping && theEvent.isGroup() && theEvent.getGroup() == clip_aspect_radio)
+    {
+      // super.controlEvent() (above) has already set page_data.clip_aspect_ratio to
+      // the newly picked mode - snap height to match the current width under it.
+      applyAspectRatioFromWidth();
+    }
+  }
+
+  // clip_width is authoritative: recomputes clip_height to match the active ratio.
+  void applyAspectRatioFromWidth()
+  {
+    float ratio = getClipAspectRatioValue(page_data.clip_aspect_ratio, page_data.clip_landscape);
+    if (ratio <= 0)
+      return;
+    applying_aspect_ratio = true;
+    clip_slider_height.setValue(page_data.clip_width / ratio);
+    applying_aspect_ratio = false;
+  }
+
+  // clip_height is authoritative: recomputes clip_width to match the active ratio.
+  void applyAspectRatioFromHeight()
+  {
+    float ratio = getClipAspectRatioValue(page_data.clip_aspect_ratio, page_data.clip_landscape);
+    if (ratio <= 0)
+      return;
+    applying_aspect_ratio = true;
+    clip_slider_width.setValue(page_data.clip_height * ratio);
+    applying_aspect_ratio = false;
   }
 
   void ExportSVGProcessing()

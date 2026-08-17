@@ -443,10 +443,22 @@ class GUIPanel implements ControlListener
     for (int i = 0; i < labels.size(); i++)
     {
       String _label = labels.get(i);
-      r1.addItem(_label, float(i));
+      // addItem()'s first argument becomes the item's own ControlP5 controller name,
+      // registered in a flat namespace shared by the WHOLE sketch (not scoped to this
+      // radio group) - two different radios both offering e.g. an "A4" option would
+      // otherwise collide (ControlP5 logs a warning and silently reuses/overwrites the
+      // first one's reference instead of creating a second button). Prefix with this
+      // radio's own name to keep item names unique; the plain label is restored as
+      // each item's displayed caption text below (addItem() returns RadioButton for
+      // chaining, not the created Toggle, so that happens in the styling loop instead).
+      r1.addItem(name + "_" + _label, float(i));
     }
 
+    int _item_idx = 0;
     for (Toggle t : r1.getItems()) {
+      t.getCaptionLabel().setText(labels.get(_item_idx));
+      _item_idx++;
+
       t.getCaptionLabel().setColorBackground(color(125, 0));
 
       t.getCaptionLabel().getStyle().moveMargin(-8, 0, 0, -width_bt);

@@ -1,12 +1,33 @@
 String get_xlib_version()
 {
-  return "3.13.0";
+  return "3.13.2";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.13.2] - 2026-08-17
+ - xLib_FileUI: clip aspect-ratio lock (added in 3.13.1's clip_aspect_ratio radio)
+   gains a "Landscape" toggle (DataPage.clip_landscape) to pick which side (width or
+   height) gets the preset's long dimension - e.g. upright vs. sideways A4. Ratio
+   lookup split into getClipAspectRatioMagnitude() (long/short, always >= 1) and
+   getClipAspectRatioValue(mode, landscape) (actual width/height ratio for the
+   chosen orientation); flipping the toggle re-snaps height to the current width
+   under the new orientation, same as picking a different ratio preset does.
+
+ ## [3.13.1] - 2026-08-17
+ - xLib_GUIPanel: addRadio() now names each item "<radio_name>_<label>" instead of
+   just "<label>" when registering it with ControlP5, restoring the plain label as
+   the item's displayed caption text afterward. addItem()'s name argument is a
+   ControlP5 controller name in a flat, sketch-wide namespace (not scoped to the
+   radio group it belongs to) - two different radios offering an option with the
+   same label (e.g. "A4", used by both an export-paper radio and a new clip
+   aspect-ratio radio in xLib_FileUI) collided: ControlP5 logged a "Controller ...
+   already exists, overwriting reference" warning and the second radio's item
+   silently reused the first one's controller instead of being created, so it never
+   rendered or responded to clicks.
 
  ## [3.13.0] - 2026-08-17
  - xLib_FileUI: Load and "Save as..." no longer open the native selectInput() file
