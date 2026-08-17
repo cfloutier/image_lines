@@ -1,12 +1,52 @@
 String get_xlib_version()
 {
-  return "3.12.2";
+  return "3.13.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.13.0] - 2026-08-17
+ - xLib_FileUI: Load and "Save as..." no longer open the native selectInput() file
+   dialog (the one that could open behind the main window on P3D/JOGL sketches like
+   trace_3d) - replaced by an in-app ControlP5 file picker built entirely on top of
+   the existing "Files" tab and the built-in "default"/"Hide GUI" tab:
+   - Load: browses Settings/ (including sub-folders, e.g. perlin_mountains' presets
+     organized under Settings/mountains/, Settings/hairs/, etc.), one button per
+     file/folder, with ".." to go up and Prev/Next pagination beyond a fixed slot pool.
+   - Save as...: same browser, either click an existing file (asks for confirmation
+     before overwriting) or type a new name in a text field (pre-filled with the
+     current file's name, auto-focused, ".json" appended automatically, redirects to
+     the same overwrite confirmation on a name collision).
+   - The picker's controls live on the "default" tab (enterState() brings it to
+     front while active, and back to "Files" on Cancel/completion) instead of the
+     Files tab itself, so Files stays uncluttered when not picking.
+   - stop_compute is driven from a single state-transition function, avoiding the
+     kind of stuck-true regression fixed in 3.12.1.
+   - bringNativeFileDialogToFront() itself is unchanged and still used by
+     xLib_Image.pde's image-source picker (out of scope for this change).
+   - Fixed along the way: ControlP5 re-fires a click within the same frame when the
+     button under the cursor is relabeled synchronously inside its own click handler
+     (observed navigating into a folder: the same slot, now showing a different
+     entry, was clicked a second time in the same frame) - folder/up/prev/next
+     navigation now defers the actual relabeling to the next draw() frame and
+     ignores a second nav action inside one frame.
+
+ ## [3.12.3] - 2026-08-17
+ - xLib_Style: LoadJson() now sets changed = true at the end, like the base
+   GenericData.LoadJson() does - this custom override never did, so a project's own
+   draw()-gate checks on style.changed (or any per-chapter "did this change" check)
+   never saw a Load as a change. Same latent bug found and fixed in several
+   trace_3d-local (non-synced) files with their own custom LoadJson() overrides -
+   DataBoxes, DataOcclusion, CameraData, DataFacePattern - none of them propagated
+   "changed" either. Previously masked by MainPanel.setGUIValues() calling
+   Controller.setValue() with broadcast still enabled (setValue() firing a
+   ControlEvent like a real edit, incidentally marking every chapter "changed" as a
+   side effect) - now that 3.12.2 correctly suppresses that broadcast, this
+   pre-existing gap became visible: trace_3d stopped rebuilding its box mesh after a
+   Load, since DataBoxes.changed was never set.
 
  ## [3.12.2] - 2026-08-17
  - xLib_MainPanel: setGUIValues()/update_ui() now wrap their panel loop in

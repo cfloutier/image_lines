@@ -1,4 +1,5 @@
 import java.util.Locale;
+import java.util.Collections;
 
 // On some Processing renderer/OS combinations (seen with P3D/JOGL sketches), the native
 // file dialog opened by selectInput()/selectOutput() appears behind the main window - which
@@ -30,7 +31,8 @@ void bringNativeFileDialogToFront() {
       }
       if (++tries[0] >= 40) t.stop();  // give up after ~6s - dialog may have been cancelled instantly
     }
-  });
+  }
+  );
   t.setRepeats(true);
   t.start();
 }
@@ -83,6 +85,53 @@ class FileGUI extends GUIPanel
   ExportBusyGuard export_busy_guard = null;
 
   int last_save_duration = -1;
+
+  // ---- In-app Load/Save file picker (replaces the native selectInput() modal,
+  // which on P3D/JOGL sketches can open behind the main window). See enterState(). ----
+  static final int FILE_UI_NORMAL = 0;
+  static final int FILE_UI_LOAD_PICK = 1;
+  static final int FILE_UI_SAVE_PICK = 2;
+  static final int FILE_UI_CONFIRM_OVERWRITE = 3;
+
+  static final int FILE_SLOT_COLUMNS = 4;
+  static final int FILE_SLOT_ROWS = 4;
+  static final int MAX_FILE_SLOTS = FILE_SLOT_COLUMNS * FILE_SLOT_ROWS;
+  static final int FILE_SLOT_WIDTH = 220;
+  static final int FILE_SLOT_HEIGHT = 20;
+  static final int FILE_SLOT_XGAP = 10;
+  static final int FILE_SLOT_YGAP = 2;
+
+  int file_ui_state = FILE_UI_NORMAL;
+  // Path relative to Settings/ currently being browsed ("" = Settings/ itself).
+  // Only ever reset to "" by LoadJson()/SaveJson() (a fresh Load/Save-as click) -
+  // navigating folders, paginating, or cancelling out of a confirm step must NOT
+  // lose it.
+  String current_relpath = "";
+  int file_list_page = 0;
+  String pending_overwrite_name = null;
+  // When true, refreshFileList() runs on the NEXT draw() frame instead of
+  // immediately - see setPendingRefresh()/draw() for why.
+  boolean pending_refresh = false;
+  // ControlP5 re-fires a click within the same frame if the button under the mouse
+  // is still present but its meaning changed mid-dispatch (confirmed empirically:
+  // navigating into a folder immediately re-triggered a second "navigate" call,
+  // doubling the path segment - deferring the relabel alone wasn't enough, since the
+  // ghost click still runs the same handler again with the metadata unchanged).
+  // shouldSkipDuplicateNavAction() blocks a second nav action within one frame.
+  int last_nav_action_frame = -1;
+
+  Button[] file_slot_buttons = new Button[MAX_FILE_SLOTS];
+  String[] file_slot_name = new String[MAX_FILE_SLOTS];
+  boolean[] file_slot_is_dir = new boolean[MAX_FILE_SLOTS];
+
+  Textlabel file_ui_status_label;
+  Button up_dir_bt;
+  Button prev_page_bt;
+  Button next_page_bt;
+  Textfield new_filename_field;
+  Button create_bt;
+  Button confirm_overwrite_bt;
+  Button cancel_bt;
 
   FileGUI(DataGlobal data)
   {
@@ -202,31 +251,105 @@ class FileGUI extends GUIPanel
     margins.add("2 cm");
     margins.add("3 cm");
     margin_radio = addRadio("margin", margins);
+
+    setupFilePickerControls();
   }
 
-  String default_path()
+  // The picker's controls live on cp5's built-in "default" tab (labeled "Hide GUI"
+  // in trace_3d.pde's setup()) instead of the "Files" tab, so opening Load/Save-as
+  // doesn't pile a busy button grid onto the Files tab's own permanent controls.
+  // enterState() brings that tab to front while a picker state is active and back
+  // to "Files" on return - same bringToFront() mechanism already used for the
+  // initial tab in DataGUI.Init().
+  void setupFilePickerControls()
   {
-    if (data.name == "")
-      data.name = "default";
+    float px = StartX;
+    float py = StartY;
 
-    String default_file = "../Settings/"+data.name+".json";
-    return default_file;
+    file_ui_status_label = addLabel("");
+    file_ui_status_label.setPosition(px, py).moveTo("default");
+    py += heightCtrl + 6;
+
+    float slot_start_x = px;
+    float slot_start_y = py;
+
+    for (int i = 0; i < MAX_FILE_SLOTS; i++)
+    {
+      int col = i % FILE_SLOT_COLUMNS;
+      int row = i / FILE_SLOT_COLUMNS;
+      float bx = slot_start_x + col * (FILE_SLOT_WIDTH + FILE_SLOT_XGAP);
+      float by = slot_start_y + row * (FILE_SLOT_HEIGHT + FILE_SLOT_YGAP);
+
+      Button bt = cp5.addButton("file_slot_" + i)
+        .setPosition(bx, by)
+        .setSize(FILE_SLOT_WIDTH, FILE_SLOT_HEIGHT)
+        .setLabel("")
+        .moveTo("default");
+      bt.hide();
+      file_slot_buttons[i] = bt;
+    }
+
+    py = slot_start_y + FILE_SLOT_ROWS * (FILE_SLOT_HEIGHT + FILE_SLOT_YGAP) + 10;
+
+    up_dir_bt = addButton("..");
+    up_dir_bt.setPosition(px, py).moveTo("default");
+    up_dir_bt.plugTo(this, "onUpDir");
+    px += 105;
+    prev_page_bt = addButton("< Prev");
+    prev_page_bt.setPosition(px, py).moveTo("default");
+    prev_page_bt.plugTo(this, "onPrevPage");
+    px += 105;
+    next_page_bt = addButton("Next >");
+    next_page_bt.setPosition(px, py).moveTo("default");
+    next_page_bt.plugTo(this, "onNextPage");
+
+    px = StartX;
+    py += heightCtrl + 6;
+
+    new_filename_field = cp5.addTextfield("new_filename_field")
+      .setPosition(px, py)
+      .setSize(widthCtrl, heightCtrl)
+      .setAutoClear(false)
+      .moveTo("default");
+    new_filename_field.hide();
+    px += widthCtrl + xspace;
+
+    create_bt = addButton("Create");
+    create_bt.setPosition(px, py).moveTo("default");
+    create_bt.plugTo(this, "onCreateNewFile");
+
+    px = StartX;
+    py += heightCtrl + 6;
+
+    confirm_overwrite_bt = addButton("Yes, overwrite");
+    confirm_overwrite_bt.setPosition(px, py).moveTo("default");
+    confirm_overwrite_bt.plugTo(this, "onConfirmOverwrite");
+    px += 140;
+    cancel_bt = addButton("Cancel");
+    cancel_bt.setPosition(px, py).moveTo("default");
+    cancel_bt.plugTo(this, "onCancel");
+
+    // addButton() advances xPos/yPos on the Files-tab layout cursor as a side effect
+    // of building the controls above - reset it since setupControls() is otherwise
+    // done with the Files tab at this point.
+    xPos = StartX;
+    yPos = StartY;
+
+    enterState(FILE_UI_NORMAL);
   }
 
   void LoadJson()
   {
-    println("LoadJson ");
-    stop_compute = true;
-    selectInput("Select data file ", "loadSelected", dataFile("../Settings/default.json")  );
-    bringNativeFileDialogToFront();
+    current_relpath = "";
+    file_list_page = 0;
+    enterState(FILE_UI_LOAD_PICK);
   }
 
   void SaveJson()
   {
-    println("SaveJson ");
-    stop_compute = true;
-    selectInput("Save data file ", "saveSelected", dataFile(default_path()));
-    bringNativeFileDialogToFront();
+    current_relpath = "";
+    file_list_page = 0;
+    enterState(FILE_UI_SAVE_PICK);
   }
 
   void Save()
@@ -237,6 +360,323 @@ class FileGUI extends GUIPanel
       data.SaveSettings(data.settings_path);
       stop_compute = false;
     }
+  }
+
+  // ---- In-app file picker state machine ----
+
+  // Single authority for what's visible and for stop_compute: true the instant we
+  // leave FILE_UI_NORMAL, false only once we're back (Cancel from any sub-state, or
+  // a completed load/save) - one place to get right instead of resetting the flag in
+  // every possible callback branch (see xLib_version.pde 3.12.1 changelog for the bug
+  // this avoids repeating).
+  void enterState(int new_state)
+  {
+    file_ui_state = new_state;
+    stop_compute = (new_state != FILE_UI_NORMAL);
+
+    if (new_state == FILE_UI_NORMAL)
+      cp5.getTab(pageName).bringToFront();
+    else
+      cp5.getTab("default").bringToFront();
+
+    for (Button b : file_slot_buttons)
+      b.hide();
+    up_dir_bt.hide();
+    prev_page_bt.hide();
+    next_page_bt.hide();
+    new_filename_field.hide();
+    create_bt.hide();
+    confirm_overwrite_bt.hide();
+    cancel_bt.hide();
+    file_ui_status_label.setText("");
+
+    if (new_state == FILE_UI_LOAD_PICK)
+    {
+      file_ui_status_label.setText("Select a file to load:");
+      refreshFileList();
+      cancel_bt.show();
+    } else if (new_state == FILE_UI_SAVE_PICK)
+    {
+      file_ui_status_label.setText("Select a file to overwrite, or type a new name:");
+      refreshFileList();
+      new_filename_field.show();
+      new_filename_field.setText(data.name);
+      new_filename_field.setFocus(true);
+      create_bt.show();
+      cancel_bt.show();
+    } else if (new_state == FILE_UI_CONFIRM_OVERWRITE)
+    {
+      file_ui_status_label.setText("Overwrite \"" + pending_overwrite_name + "\" ?");
+      confirm_overwrite_bt.show();
+      cancel_bt.show();
+    }
+  }
+
+  // Lists sub-folders and .json files directly inside Settings/current_relpath (never
+  // outside Settings/), folders first, both alphabetical (case-insensitive), and
+  // fills the fixed button pool for the current page. Called on entering
+  // LOAD_PICK/SAVE_PICK and again after navigating a folder/page, WITHOUT going
+  // through enterState() (so status label / textfield visibility stay as they are).
+  void refreshFileList()
+  {
+    ArrayList<String> dirs = new ArrayList<String>();
+    ArrayList<String> files = new ArrayList<String>();
+
+    File dir = new File(sketchPath("Settings"), current_relpath);
+    File[] entries = dir.exists() ? dir.listFiles() : null;
+    if (entries != null)
+    {
+      for (File f : entries)
+      {
+        if (f.isDirectory())
+          dirs.add(f.getName());
+        else if (f.getName().toLowerCase(Locale.US).endsWith(".json"))
+          files.add(f.getName());
+      }
+    }
+    Collections.sort(dirs, String.CASE_INSENSITIVE_ORDER);
+    Collections.sort(files, String.CASE_INSENSITIVE_ORDER);
+
+    ArrayList<String> combined = new ArrayList<String>();
+    ArrayList<Boolean> combined_is_dir = new ArrayList<Boolean>();
+    for (String d : dirs) {
+      combined.add(d);
+      combined_is_dir.add(true);
+    }
+    for (String f : files) {
+      combined.add(f);
+      combined_is_dir.add(false);
+    }
+
+    int total = combined.size();
+    int start = file_list_page * MAX_FILE_SLOTS;
+
+    for (int i = 0; i < MAX_FILE_SLOTS; i++)
+    {
+      int srcIdx = start + i;
+      if (srcIdx < total)
+      {
+        String name = combined.get(srcIdx);
+        boolean is_dir = combined_is_dir.get(srcIdx);
+        file_slot_name[i] = name;
+        file_slot_is_dir[i] = is_dir;
+        file_slot_buttons[i].setLabel(is_dir ? (name + "/") : name);
+        file_slot_buttons[i].show();
+      } else
+      {
+        file_slot_name[i] = null;
+        file_slot_buttons[i].hide();
+      }
+    }
+
+    if (current_relpath.length() == 0)
+      up_dir_bt.hide();
+    else
+      up_dir_bt.show();
+
+    if (file_list_page > 0)
+      prev_page_bt.show();
+    else
+      prev_page_bt.hide();
+
+    if (start + MAX_FILE_SLOTS < total)
+      next_page_bt.show();
+    else
+      next_page_bt.hide();
+  }
+
+  void onFileSlotClicked(int i)
+  {
+    String name = file_slot_name[i];
+    if (name == null)
+      return;
+
+    if (file_slot_is_dir[i])
+    {
+      if (shouldSkipDuplicateNavAction())
+      {
+        println("[FileUI] ignoring re-entrant folder click this frame (i=" + i + ")");
+        return;
+      }
+      current_relpath = (current_relpath.length() == 0) ? name : current_relpath + "/" + name;
+      file_list_page = 0;
+      pending_refresh = true;
+      return;
+    }
+
+    if (file_ui_state == FILE_UI_LOAD_PICK)
+    {
+      executeLoad(name);
+    } else if (file_ui_state == FILE_UI_SAVE_PICK)
+    {
+      pending_overwrite_name = name;
+      enterState(FILE_UI_CONFIRM_OVERWRITE);
+    }
+  }
+
+  // Blocks a second navigation action (folder click / up / prev / next) dispatched
+  // within the same Processing frame - a real distinct user click can never land in
+  // the same frame as another (frames are ~16ms apart), so this only ever catches
+  // the ControlP5 ghost re-dispatch, never a legitimate fast click.
+  boolean shouldSkipDuplicateNavAction()
+  {
+    if (frameCount == last_nav_action_frame)
+      return true;
+    last_nav_action_frame = frameCount;
+    return false;
+  }
+
+  void onUpDir()
+  {
+    if (shouldSkipDuplicateNavAction())
+    {
+      println("[FileUI] ignoring re-entrant up-dir click this frame");
+      return;
+    }
+    int idx = current_relpath.lastIndexOf('/');
+    current_relpath = (idx < 0) ? "" : current_relpath.substring(0, idx);
+    file_list_page = 0;
+    pending_refresh = true;
+  }
+
+  void onPrevPage()
+  {
+    if (shouldSkipDuplicateNavAction())
+      return;
+    if (file_list_page > 0)
+    {
+      file_list_page--;
+      pending_refresh = true;
+    }
+  }
+
+  void onNextPage()
+  {
+    if (shouldSkipDuplicateNavAction())
+      return;
+    file_list_page++;
+    pending_refresh = true;
+  }
+
+  // ControlP5 appears to re-evaluate a click within the same dispatch pass if the
+  // button under the cursor gets relabeled synchronously inside its own click
+  // handler (confirmed empirically: navigating into a folder immediately re-fired
+  // a second click on whatever file now occupies that same slot). Deferring the
+  // actual relabeling to the next draw() frame - after ControlP5 has fully finished
+  // dispatching the current click - avoids that re-entrant ghost click entirely.
+  void draw()
+  {
+    if (pending_refresh)
+    {
+      pending_refresh = false;
+      refreshFileList();
+    }
+  }
+
+  void onCreateNewFile()
+  {
+    handleNewFilenameSubmitted(new_filename_field.getText());
+  }
+
+  void handleNewFilenameSubmitted(String raw)
+  {
+    // Guards against a duplicate submit: ControlP5's Textfield appears to re-fire its
+    // submit event when it loses focus, which happens right after a successful save
+    // hides it (enterState(FILE_UI_NORMAL)) - without this guard, that second,
+    // stale event would run again, now find the just-created file, and immediately
+    // ask to confirm overwriting it. Only meaningful to process while still in
+    // FILE_UI_SAVE_PICK.
+    if (file_ui_state != FILE_UI_SAVE_PICK)
+      return;
+
+    String trimmed = (raw == null) ? "" : raw.trim();
+    if (trimmed.length() == 0)
+    {
+      file_ui_status_label.setText("Enter a file name.");
+      return;
+    }
+    if (trimmed.matches(".*[\\\\/:*?\"<>|].*"))
+    {
+      file_ui_status_label.setText("Invalid character in file name.");
+      return;
+    }
+
+    String base = trimmed.toLowerCase(Locale.US).endsWith(".json")
+      ? trimmed.substring(0, trimmed.length() - 5) : trimmed;
+    String filename = base + ".json";
+
+    File target = new File(new File(sketchPath("Settings"), current_relpath), filename);
+    if (target.exists())
+    {
+      pending_overwrite_name = filename;
+      enterState(FILE_UI_CONFIRM_OVERWRITE);
+    } else
+    {
+      executeSave(filename);
+    }
+  }
+
+  void onConfirmOverwrite()
+  {
+    if (pending_overwrite_name != null)
+      executeSave(pending_overwrite_name);
+  }
+
+  // Cancel out of a confirm step goes back to the file list (keeps current_relpath),
+  // not all the way out - so picking the wrong file to overwrite doesn't throw away
+  // the folder you were browsing. Cancel out of LOAD_PICK/SAVE_PICK itself goes to
+  // NORMAL, the only other reachable state.
+  void onCancel()
+  {
+    if (file_ui_state == FILE_UI_CONFIRM_OVERWRITE)
+      enterState(FILE_UI_SAVE_PICK);
+    else
+      enterState(FILE_UI_NORMAL);
+  }
+
+  void executeLoad(String filename)
+  {
+    String path = new File(new File(sketchPath("Settings"), current_relpath), filename).getAbsolutePath();
+    data.LoadSettings(path);
+    dataGui.setGUIValues();
+    enterState(FILE_UI_NORMAL);
+  }
+
+  void executeSave(String filename)
+  {
+    String path = new File(new File(sketchPath("Settings"), current_relpath), filename).getAbsolutePath();
+    data.SaveSettings(path);
+    setGUIValues();
+    enterState(FILE_UI_NORMAL);
+  }
+
+  // Routes clicks from the shared file-slot button pool (and the new-filename
+  // Textfield's Enter-to-submit event) by controller identity, since plugTo() only
+  // supports one fixed method per controller and these are reused across refreshes.
+  // Everything else (Load/Save/Save as/Export/Reset Scale/../Prev/Next/Create/
+  // confirm/cancel, all plugTo()'d individually, plus radios) falls through to the
+  // inherited tab-filtered onUIChanged() behavior unchanged.
+  public void controlEvent(ControlEvent theEvent)
+  {
+    if (theEvent.isController())
+    {
+      Controller c = theEvent.getController();
+      for (int i = 0; i < MAX_FILE_SLOTS; i++)
+      {
+        if (c == file_slot_buttons[i])
+        {
+          onFileSlotClicked(i);
+          return;
+        }
+      }
+      if (c == new_filename_field)
+      {
+        handleNewFilenameSubmitted(new_filename_field.getText());
+        return;
+      }
+    }
+
+    super.controlEvent(theEvent);
   }
 
   void ExportSVGProcessing()
@@ -309,31 +749,6 @@ class FileGUI extends GUIPanel
   }
 }
 
-void saveSelected(File selection)
-{
-  if (selection == null)
-  {
-  } else
-  {
-    String path = selection.getAbsolutePath();
-    if (path.length() < 5 || !path.substring(path.length() - 5).equals(".json"))
-      path = path + ".json";
-
-    data.SaveSettings(path);
-
-    String name = selection.getName();
-    if (name.endsWith(".json"))
-      data.name = name.substring(0, name.length() - 5);
-    else
-      data.name = name;
-
-    file_ui.setGUIValues();
-  }
-
-  stop_compute = false;  // dialog closed (picked or cancelled) - resume normal recompute
-}
-
-
 //subclass slider
 public class ScaleSlider extends Slider {
   //constructor
@@ -360,17 +775,6 @@ public class ScaleSlider extends Slider {
     computeScale();
     return this;
   }
-}
-
-void loadSelected(File selection)
-{
-  if (selection != null)
-  {
-    data.LoadSettings(selection.getAbsolutePath());
-    dataGui.setGUIValues();
-  }
-
-  stop_compute = false;  // dialog closed (picked or cancelled) - resume normal recompute
 }
 
 boolean _record = false;
