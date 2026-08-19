@@ -1,12 +1,29 @@
 String get_xlib_version()
 {
-  return "3.13.2";
+  return "3.13.4";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.13.4] - 2026-08-18
+ - xLib_FileUI: added a "1:1" (square) option to the clip aspect-ratio radio
+   (DataPage.ASPECT_1_1). Appended after ASPECT_RAISIN rather than inserted earlier
+   in the enum, since addRadio() assigns each item's value by its position in the
+   labels list - inserting it would have renumbered A4/16:9/4:3/Raisin and silently
+   reinterpreted any settings file already saved with a clip_aspect_ratio value.
+
+ ## [3.13.3] - 2026-08-18
+ - xLib_FileUI: flipping the clip aspect-ratio "Landscape" toggle now directly swaps
+   clip_width/clip_height instead of recomputing height from width via
+   getClipAspectRatioValue(mode, clip_landscape) - the recompute intermittently used
+   a stale clip_landscape value (dependent on exactly when ControlP5 updates the
+   bound field relative to the toggle's own ControlEvent firing), requiring an
+   extra touch of a clip slider before the new orientation actually took effect. A
+   ratio-locked pair already satisfies width/height = r or 1/r, so swapping them is
+   simpler and has no such ordering dependency.
 
  ## [3.13.2] - 2026-08-17
  - xLib_FileUI: clip aspect-ratio lock (added in 3.13.1's clip_aspect_ratio radio)

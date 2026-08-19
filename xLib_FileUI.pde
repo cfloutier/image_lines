@@ -44,6 +44,10 @@ class DataPage extends GenericData
   static final int ASPECT_16_9  = 2;
   static final int ASPECT_4_3   = 3;
   static final int ASPECT_RAISIN = 4;
+  // Appended rather than inserted alongside the others (would renumber A4/16:9/4:3/
+  // Raisin and silently reinterpret any settings file already saved with a
+  // clip_aspect_ratio value) - square, orientation-invariant.
+  static final int ASPECT_1_1   = 5;
 
   float global_scale = 1;
 
@@ -83,6 +87,8 @@ float getClipAspectRatioMagnitude(int mode)
   case DataPage.ASPECT_RAISIN:
     float[] raisin = getPaperDimensions(PAPER_RAISIN);
     return max(raisin[0], raisin[1]) / min(raisin[0], raisin[1]);
+  case DataPage.ASPECT_1_1:
+    return 1.0;
   default:
     return -1;
   }
@@ -298,6 +304,9 @@ class FileGUI extends GUIPanel
       clip_ratios.add("16:9");
       clip_ratios.add("4:3");
       clip_ratios.add("Raisin");
+      // Appended, not inserted - addRadio() assigns each item's value by its
+      // position in this list, which must line up with the ASPECT_* constants.
+      clip_ratios.add("1:1");
       clip_aspect_radio = addRadio("clip_aspect_ratio", clip_ratios);
 
       clip_landscape_toggle = addToggle("clip_landscape", "Landscape", page_data);
@@ -755,9 +764,14 @@ class FileGUI extends GUIPanel
         applyAspectRatioFromHeight();
       } else if (show_clipping && c == clip_landscape_toggle)
       {
-        // page_data.clip_landscape is already updated (Toggle is bound directly to
-        // the field) - re-snap height to width under the now-flipped orientation.
-        applyAspectRatioFromWidth();
+        // Simply swap width/height rather than recompute from the ratio: a
+        // ratio-locked pair already satisfies width/height = r or 1/r, so swapping
+        // them directly always lands on the other orientation exactly - no
+        // dependency on exactly when ControlP5 updates the bound clip_landscape
+        // field relative to this event firing (recomputing via
+        // getClipAspectRatioValue() here intermittently used a stale value and
+        // needed an extra slider touch to actually take effect).
+        swapClipWidthHeight();
       }
     }
 
@@ -790,6 +804,17 @@ class FileGUI extends GUIPanel
       return;
     applying_aspect_ratio = true;
     clip_slider_width.setValue(page_data.clip_height * ratio);
+    applying_aspect_ratio = false;
+  }
+
+  // Swaps clip_width/clip_height directly - used when the Landscape toggle flips.
+  void swapClipWidthHeight()
+  {
+    float w = page_data.clip_width;
+    float h = page_data.clip_height;
+    applying_aspect_ratio = true;
+    clip_slider_width.setValue(h);
+    clip_slider_height.setValue(w);
     applying_aspect_ratio = false;
   }
 
