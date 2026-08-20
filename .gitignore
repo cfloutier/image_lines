@@ -4,3 +4,7 @@ windows-amd64/**
 data/art002e009281~large.jpg
 data/art002e009283~large.jpg
 data/WhatsApp Image 2026-04-19 at 20.00.36.jpeg
+
+# export_app.ps1 build/release output
+build_*/
+releases/

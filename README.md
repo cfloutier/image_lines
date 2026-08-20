@@ -4,6 +4,16 @@ Processing sketch that converts an image into a stippled line drawing by modulat
 
 ---
 
+## Getting a Release
+
+No Processing, Java, or ControlP5 installation is required to run a release build — everything needed is bundled in the zip.
+
+1. Download the release zip (see `releases/` or wherever it was shared with you).
+2. Unzip it anywhere.
+3. Run the `.exe` inside — that's it.
+
+---
+
 ## Examples
 
 ### Tree — straight lines at 45°
@@ -41,14 +51,6 @@ close up : <img src="docs/moon_close_up.png" width="400">
 
 ---
 
-## Principle
-
-A set of lines is generated across the canvas — straight, circular, or sinusoidal. Each line is then filtered by the **threshold system**: segments whose underlying pixel brightness falls above or below a set of thresholds are kept or discarded, making the line visible in dark areas and invisible in bright ones (or the reverse).
-
-The result is a plotter-ready vector drawing where the image is encoded in the presence or absence of line segments.
-
----
-
 ## Line Modes
 
 Three curve types are available, selectable via a radio button in the Lines tab:
@@ -79,9 +81,9 @@ Sinusoidal waves, parallel, at an arbitrary angle.
 
 | Parameter | Role |
 |-----------|------|
-| `direction` | Angle of the wave propagation |
+| `direction_sinus` | Angle of the wave propagation (shown as "Direction" in the GUI) |
 | `size` | Half-length (radius) |
-| `amplitude` | Peak-to-peak amplitude of the wave |
+| `high` | Peak-to-peak amplitude of the wave (shown as "Amplitude" in the GUI) |
 | `period` | Wavelength of the sinusoid |
 
 ---
@@ -112,39 +114,7 @@ With `nb_values > 1`, multiple threshold bands create alternating drawn/undrawn 
 
 ---
 
-## Architecture
-
-| File | Role |
-|------|------|
-| `image_lines.pde` | Setup, draw loop, export |
-| `DataGlobal.pde` | `ImgProcData` — aggregates image, lines, threshold, style |
-| `LinesData.pde` | `DataLines` + `LinesGUI` — common line parameters and tab |
-| `StraightLines.pde` | Straight line geometry and UI |
-| `CircleLines.pde` | Circular / ellipse geometry and UI |
-| `SinusLines.pde` | Sinusoidal line geometry and UI |
-| `ImageLinesGenerator.pde` | Abstract generator — polyline accumulation and clipping |
-| `ThresholdFilter.pde` | `DataThreshold` + `ThresholdGUI` — brightness-based segment filtering |
-| `DataGUI.pde` | `DataGUI` — assembles the 5 tabs (Files, Image, Lines, Threshold, Style) |
-
----
-
-## Implementation Details
-
-### Line Generation
-
-Each mode computes a set of `ImageLine` objects (polylines). Points are sampled along each line at `precision`-pixel intervals. Each line is assigned a `group_id` so the threshold filter can treat all segments from the same original line consistently.
-
-### Threshold Filtering
-
-After generation, `ThresholdFilter` walks each line segment by segment, samples the pixel brightness at the midpoint, and decides whether to draw it based on the active threshold band(s). The result is a new set of polylines containing only the visible segments.
-
-### Clipping
-
-Optional rectangular clipping is applied as a post-processing step after generation, preserving `group_id` across clipped sub-segments.
-
-### Export
-
-Supports PDF, SVG, and DXF export (plotter-ready).
+For the algorithm details, file architecture, and how to build a release yourself, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ---
 
@@ -164,6 +134,12 @@ Supports PDF, SVG, and DXF export (plotter-ready).
 ---
 
 ## Changelog
+
+### 2026-08-19 — xLib 3.13.4
+- **File picker**: Load/Save now use an in-app file browser (folder navigation, file list) instead of the native OS dialog.
+- **Clip Ratio**: the clipping rectangle can be locked to a fixed aspect ratio (None, A4, 16:9, 4:3, Raisin, 1:1), with a Landscape toggle to swap orientation.
+- **Build**: added `export_app.ps1` to produce a standalone, installer-free release build (no Processing/Java/ControlP5 needed by end users).
+- **Docs**: split into `README.md` (usage) and `DEVELOPMENT.md` (algorithm, architecture, build); fixed the Sinus Lines parameter table (was documenting non-existent `direction`/`amplitude` fields instead of the actual `direction_sinus`/`high`).
 
 ### 2026-05-11
 - **Refactoring**: switched `ImageLinesGenerator` to `PolylineGroup` — clipping now delegated to `PolylineGroup.draw()`, removed `clipLines()`, `clipLine()`, `isPointInClipRect()`, `addSegmentToLine()`.
