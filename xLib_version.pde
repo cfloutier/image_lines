@@ -1,12 +1,23 @@
 String get_xlib_version()
 {
-  return "3.13.4";
+  return "3.14.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [3.14.0] - 2026-08-26
+ - Removed ColorRef from xLib_Style/xLib_ColorRef. Style.lineColor/backgroundColor are now
+   plain color fields instead of a ColorRef wrapper - GenericData's generic reflection already
+   round-trips color fields through JSON (color is int at the JVM level), under the same keys
+   ColorRef used, so no custom LoadJson/SaveJson is needed anymore. The Style tab's swatch grid
+   (ColorGroup/ColorButton) now writes a picked color through a small ColorSetter callback
+   interface instead of mutating a shared ColorRef object - breaking API change:
+   GUIPanel.addColorGroup(label, ColorRef) is now addColorGroup(label, ColorSetter). No backward
+   compatibility kept; other xLib-based projects need their own Style/ColorRef consumers (e.g.
+   any per-project ColorRef-typed field) adapted on sync.
 
  ## [3.13.4] - 2026-08-18
  - xLib_FileUI: added a "1:1" (square) option to the clip aspect-ratio radio

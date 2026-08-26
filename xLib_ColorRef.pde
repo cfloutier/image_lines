@@ -1,4 +1,12 @@
 
+// Sink for a picked swatch color - lets ColorGroup write straight into
+// whichever plain `color` field owns it, without a wrapper object or
+// reflection. Implemented anonymously at each addColorGroup() call site.
+interface ColorSetter
+{
+  void setColor(color c);
+}
+
 class ColorButton
 {
   color col;
@@ -29,13 +37,13 @@ class ColorButton
 
   void onClic()
   {
-    group.colorRef.col = this.col;
+    group.target.setColor(this.col);
   }
 }
 
 class ColorGroup
 {
-  ColorRef colorRef;
+  ColorSetter target;
   String name;
 
   int[][] colors = {
@@ -75,9 +83,9 @@ class ColorGroup
     { 0, 0, 0  }
   };
 
-  ColorGroup(ColorRef colorRef, String name)
+  ColorGroup(ColorSetter target, String name)
   {
-    this.colorRef = colorRef;
+    this.target = target;
     this.name = name;
   }
 
@@ -98,27 +106,5 @@ class ColorGroup
 
     panel.yPos += 25;
     panel.xPos = StartX;
-  }
-}
-
-class ColorRef
-{
-  ColorRef(color col, String name)
-  {
-    this.col = col;
-    this.name = name;
-  }
-
-  color col;
-  String name;
-
-  void LoadJson(JSONObject src)
-  {
-    col = src.getInt(name, col);
-  }
-
-  void SaveJson(JSONObject dest)
-  {
-    dest.setInt(name, col);
   }
 }

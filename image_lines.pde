@@ -95,7 +95,7 @@ void draw()
     data.image.draw(data.image.imageAlpha);
 
   strokeWeight(data.style.lineWidth);
-  stroke(data.style.lineColor.col);
+  stroke(data.style.lineColor);
 
   smooth();
   if (data.lines.draw)

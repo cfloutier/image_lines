@@ -1019,9 +1019,9 @@ void start_draw()
 
     current_graphics = g;
 
-    background(data.style.backgroundColor.col);
+    background(data.style.backgroundColor);
     strokeWeight(data.style.lineWidth);
-    stroke(data.style.lineColor.col);
+    stroke(data.style.lineColor);
 
     // Apply transformations to screen display
     pushMatrix();

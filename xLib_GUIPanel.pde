@@ -393,9 +393,9 @@ class GUIPanel implements ControlListener
     return cp;
   }
 
-  ColorGroup addColorGroup(String name, ColorRef colorRef)
+  ColorGroup addColorGroup(String name, ColorSetter target)
   {
-    ColorGroup grp = new ColorGroup(colorRef, name );
+    ColorGroup grp = new ColorGroup(target, name );
 
     grp.Init(this);
 
