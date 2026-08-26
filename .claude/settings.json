@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(ls -la ~/.claude/projects/ 2>/dev/null | head -50)",
+      "Read(//c/Users/cfloutier/.claude/projects/**)",
+      "Bash(ls -la ~/.claude/projects/e--dev-processing-image-lines/ 2>/dev/null)",
+      "Read(//c/Users/cfloutier/.claude/projects/e--dev-processing-image-lines/**)",
+      "Read(//c/Users/cfloutier/.claude/projects/e--dev-processing-image-lines/80d48306-5fe0-4d5d-9275-635226475b29/**)",
+      "Read(//c/Users/cfloutier/.claude/projects/e--dev-processing-image-lines/memory/**)",
+      "Bash(cp -v ~/.claude/projects/e--dev-processing-image-lines/80d48306-5fe0-4d5d-9275-635226475b29.jsonl ~/.claude/projects/c--dev-claude-sandbox-processing-image-lines/)",
+      "Bash(cp -rv ~/.claude/projects/e--dev-processing-image-lines/80d48306-5fe0-4d5d-9275-635226475b29 ~/.claude/projects/c--dev-claude-sandbox-processing-image-lines/)",
+      "Bash(cp -v ~/.claude/projects/e--dev-processing-image-lines/memory/*.md ~/.claude/projects/c--dev-claude-sandbox-processing-image-lines/memory/)",
+      "Read(//c/Users/cfloutier/.claude/projects/c--dev-claude-sandbox-processing-image-lines/**)",
+      "Read(//c/Users/cfloutier/.claude/projects/c--dev-claude-sandbox-processing-image-lines/memory/**)",
+      "Bash(ls /e/ 2>&1; echo \"---\"; ls /e/dev 2>&1; echo \"---\"; ls /e/dev/processing 2>&1)",
+      "Read(//e//**)",
+      "Bash(ls -la \"/c/dev/claude_sandbox/processing/\" 2>&1)",
+      "Read(//c/dev/claude_sandbox/processing//**)",
+      "Bash(cd \"/c/dev/claude_sandbox/processing\" *)",
+      "Read(//c/dev/claude_sandbox/processing/**)",
+      "Bash(cd \"/c/dev/claude_sandbox/processing\" && diff \"trace_3d/xLib_FileUI.pde\" \"processing_xlib/xLib_FileUI.pde\")",
+      "Bash(cp trace_3d/xLib_Camera3D.pde processing_xlib/xLib_Camera3D.pde)",
+      "Bash(cp trace_3d/xLib_Box3D.pde processing_xlib/xLib_Box3D.pde)",
+      "Bash(cp trace_3d/xLib_FileUI.pde processing_xlib/xLib_FileUI.pde)",
+      "Bash(cp trace_3d/xLib_version.pde processing_xlib/xLib_version.pde)"
+    ]
+  }
+}

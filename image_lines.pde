@@ -73,12 +73,14 @@ void setupControls()
 
 void draw()
 {
-  start_draw();
-
+  // buildTransformedImage() must run before data.reset_all_changes() below: it gates its
+  // own rebuild on data.image.changed, which reset_all_changes() clears. It must also run
+  // before threshold_filter.buildLines(), which samples the freshly rebuilt image.
   data.image.buildTransformedImage();
-  if (data.image.draw)
-    data.image.draw(data.image.imageAlpha);
 
+  // Rebuild lines and refresh export scale/orientation BEFORE start_draw(), so that
+  // an export triggered right after a data change sizes its canvas from up-to-date values
+  // (start_draw() reads file_ui.export_landscape / export_scale to size the export canvas).
   if (data.any_change())
   {
     generator.buildLines();
@@ -87,6 +89,11 @@ void draw()
     data.reset_all_changes();
   }
 
+  start_draw();
+
+  if (data.image.draw)
+    data.image.draw(data.image.imageAlpha);
+
   strokeWeight(data.style.lineWidth);
   stroke(data.style.lineColor.col);
 
@@ -94,7 +101,7 @@ void draw()
   if (data.lines.draw)
     generator.draw();
 
-  if (data.threshold.draw)
+  if (data.threshold.enabled)
     threshold_filter.draw();
 
   end_draw();

@@ -21,6 +21,8 @@ class Style extends GenericData
     lineColor.LoadJson(src);
 
     lineWidth = src.getFloat("lineWidth", lineWidth);
+
+    changed = true;
   }
 
   JSONObject SaveJson()

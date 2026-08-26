@@ -1,70 +1,70 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -15261654,
-    "lineWidth": 1.2166666984558105
-  },
-  "Page": {
-    "clipping": false,
-    "clip_width": 0,
-    "clip_height": 0,
-    "global_scale": 1.0599994659423828
-  },
-  "Image": {
-    "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 1118,
-    "Contrast": 0,
-    "source_file": "toine.jpg"
-  },
-  "Lines": {
-    "SinusLines": {
-      "high": 20,
-      "period": 140.46665954589844,
-      "size": 587.1000366210938,
-      "direction_sinus": -57.599998474121094
-    },
-    "canvas_width": 715,
-    "lines_spacing": 0.5633333325386047,
-    "nb_lines": 4029,
-    "precision": 4.054666996002197,
-    "canvas_height": 871,
-    "draw": false,
-    "type": 1,
-    "CircleLines": {
-      "max_radius": 2270,
-      "min_radius": 0,
-      "ellipse": 0,
-      "center_y": 480,
-      "center_x": -240
-    },
-    "use_canvas": true,
-    "StraightLines": {
-      "size": 454.433349609375,
-      "direction": 14.400009155273438
-    }
-  },
-  "Threshold": {
-    "threshold_12": 191.75364685058594,
-    "threshold_11": 178.28591918945312,
-    "mirror": true,
-    "threshold_2": 33.933494567871094,
-    "threshold_3": 54.31790542602539,
-    "threshold_10": 164.53111267089844,
-    "threshold_1": 5.949999809265137,
-    "black": true,
-    "draw": true,
-    "min_value": 5.949999809265137,
-    "use_power": true,
-    "threshold_6": 105.65581512451172,
-    "threshold_7": 121.09153747558594,
-    "threshold_4": 72.56571960449219,
-    "power": -0.2666664123535156,
-    "threshold_5": 89.55121612548828,
-    "nb_values": 9,
-    "threshold_8": 135.99234008789062,
-    "max_value": 150.45001220703125,
-    "threshold_9": 150.45001220703125
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -15261654,
+                  "lineWidth":  1.2166666984558105
+              },
+    "Page":  {
+                 "clipping":  false,
+                 "clip_width":  0,
+                 "clip_height":  0,
+                 "global_scale":  1.0599994659423828
+             },
+    "Image":  {
+                  "reset_image":  false,
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  1118,
+                  "Contrast":  0,
+                  "source_file":  "toine.jpg"
+              },
+    "Lines":  {
+                  "SinusLines":  {
+                                     "high":  20,
+                                     "period":  140.46665954589844,
+                                     "size":  587.1000366210938,
+                                     "direction_sinus":  -57.599998474121094
+                                 },
+                  "canvas_width":  715,
+                  "lines_spacing":  0.5633333325386047,
+                  "nb_lines":  4029,
+                  "precision":  4.054666996002197,
+                  "canvas_height":  871,
+                  "draw":  false,
+                  "type":  1,
+                  "CircleLines":  {
+                                      "max_radius":  2270,
+                                      "min_radius":  0,
+                                      "ellipse":  0,
+                                      "center_y":  480,
+                                      "center_x":  -240
+                                  },
+                  "use_canvas":  true,
+                  "StraightLines":  {
+                                        "size":  454.433349609375,
+                                        "direction":  14.400009155273438
+                                    }
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  191.75364685058594,
+                      "threshold_11":  178.28591918945312,
+                      "threshold_2":  33.933494567871094,
+                      "threshold_3":  54.31790542602539,
+                      "threshold_10":  164.53111267089844,
+                      "threshold_1":  5.949999809265137,
+                      "black":  true,
+                      "min_value":  5.949999809265137,
+                      "use_power":  true,
+                      "threshold_6":  105.65581512451172,
+                      "threshold_7":  121.09153747558594,
+                      "threshold_4":  72.56571960449219,
+                      "power":  -0.2666664123535156,
+                      "threshold_5":  89.55121612548828,
+                      "nb_values":  9,
+                      "threshold_8":  135.99234008789062,
+                      "max_value":  150.45001220703125,
+                      "threshold_9":  150.45001220703125,
+                      "distribution_mode":  1
+                  }
 }

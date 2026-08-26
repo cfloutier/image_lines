@@ -46,19 +46,38 @@ class BoundingBox
     minY = min(minY, p.y);
     maxY = max(maxY, p.y);
   }
+
+  // Merges another bounding box into this one. No-op if other is still empty
+  // (minX > maxX, its default state before any addPoint call).
+  void addBoundingBox(BoundingBox other) {
+    if (other.minX > other.maxX) return;
+    addPoint(new PVector(other.minX, other.minY));
+    addPoint(new PVector(other.maxX, other.maxY));
+  }
 }
 
 // Get paper dimensions in mm based on format (portrait orientation)
 // Returns [width, height] in mm
 float[] getPaperDimensions(int format_enum)
 {
+  return getPaperDimensions(format_enum, false);
+}
+
+// Get paper dimensions in mm based on format.
+// landscape=true swaps width/height so the page orientation matches the drawing.
+// Returns [width, height] in mm
+float[] getPaperDimensions(int format_enum, boolean landscape)
+{
+  float[] dims;
   switch(format_enum) {
-    case PAPER_A4: return new float[]{ A4_WIDTH_MM, A4_HEIGHT_MM };
-    case PAPER_A3: return new float[]{ A3_WIDTH_MM, A3_HEIGHT_MM };
-    case PAPER_A2: return new float[]{ A2_WIDTH_MM, A2_HEIGHT_MM };
-    case PAPER_RAISIN: return new float[]{ RAISIN_WIDTH_MM, RAISIN_HEIGHT_MM };
+    case PAPER_A4: dims = new float[]{ A4_WIDTH_MM, A4_HEIGHT_MM }; break;
+    case PAPER_A3: dims = new float[]{ A3_WIDTH_MM, A3_HEIGHT_MM }; break;
+    case PAPER_A2: dims = new float[]{ A2_WIDTH_MM, A2_HEIGHT_MM }; break;
+    case PAPER_RAISIN: dims = new float[]{ RAISIN_WIDTH_MM, RAISIN_HEIGHT_MM }; break;
     default: return null;
   }
+  if (landscape) { float t = dims[0]; dims[0] = dims[1]; dims[1] = t; }
+  return dims;
 }
 
 // Print export debug info (bounding box + scale)
@@ -97,23 +116,16 @@ float getMarginMM(int margin_enum)
   }
 }
 
-// Determine if drawing should be rotated for portrait export
-// Rotate if drawing is landscape (wider than tall)
-boolean shouldRotateForExport(BoundingBox bbox)
-{
-  return bbox != null && bbox.getWidth() > bbox.getHeight();
-}
-
 // Post-process a Processing-generated SVG to make it plotter-ready:
 //  - Removes Batik DOCTYPE (SVG 1.0)
 //  - Sets width/height in mm, viewBox in mm (1 unit = 1mm)
 //  - Converts <g> transforms from px-space to mm-space (translate * K, scale * K)
 //  - Adds explicit stroke:#000000 on <g> elements (AxiDraw requires it on direct parent)
 //  - Sets version="1.1"
-void postProcessSVGForPlotter(String filepath, int paper_format) {
+void postProcessSVGForPlotter(String filepath, int paper_format, boolean landscape) {
   if (paper_format == PAPER_NONE) return;
 
-  float[] paper_dims = getPaperDimensions(paper_format);
+  float[] paper_dims = getPaperDimensions(paper_format, landscape);
   if (paper_dims == null) return;
 
   final float K    = 25.4 / 96.0; // SVG user px → mm
@@ -135,25 +147,7 @@ void postProcessSVGForPlotter(String filepath, int paper_format) {
   );
 
   // 3. Convert <g> transforms from px-space to mm-space
-  //    Processing always emits: translate(tx,ty) scale(sx,sy) rotate(r)  or without rotate
-  java.util.regex.Pattern pR = java.util.regex.Pattern.compile(
-    "transform=\"translate\\(([\\d.]+),([\\d.]+)\\) scale\\(([\\d.]+),([\\d.]+)\\) rotate\\((-?\\d+)\\)\""
-  );
-  java.util.regex.Matcher mR = pR.matcher(content);
-  StringBuffer sbR = new StringBuffer();
-  while (mR.find()) {
-    float tx = Float.parseFloat(mR.group(1)) * K;
-    float ty = Float.parseFloat(mR.group(2)) * K;
-    float sx = Float.parseFloat(mR.group(3)) * K;
-    float sy = Float.parseFloat(mR.group(4)) * K;
-    int   r  = Integer.parseInt(mR.group(5));
-    String nt = String.format(java.util.Locale.US,
-      "transform=\"translate(%.4f,%.4f) scale(%.6f,%.6f) rotate(%d)\"", tx, ty, sx, sy, r);
-    mR.appendReplacement(sbR, java.util.regex.Matcher.quoteReplacement(nt));
-  }
-  mR.appendTail(sbR);
-  content = sbR.toString();
-
+  //    Processing always emits: translate(tx,ty) scale(sx,sy)
   java.util.regex.Pattern p0 = java.util.regex.Pattern.compile(
     "transform=\"translate\\(([\\d.]+),([\\d.]+)\\) scale\\(([\\d.]+),([\\d.]+)\\)\""
   );
@@ -184,27 +178,21 @@ void postProcessSVGForPlotter(String filepath, int paper_format) {
   println("SVG fixed for plotter (mm viewBox + transforms): " + filepath);
 }
 
-float calculateExportScale(BoundingBox bbox, int paper_format, int margin, boolean shouldRotate)
+float calculateExportScale(BoundingBox bbox, int paper_format, int margin)
 {
   if (paper_format == PAPER_NONE || bbox == null) {
     return 1.0;
   }
-  
-  float[] paper_dims = getPaperDimensions(paper_format);
+
+  boolean landscape = bbox.getWidth() > bbox.getHeight();
+  float[] paper_dims = getPaperDimensions(paper_format, landscape);
   if (paper_dims == null) {
     return 1.0;
   }
-  
+
   float bbox_width = bbox.getWidth();
   float bbox_height = bbox.getHeight();
-  
-  // If rotating -90°, dimensions are swapped visually
-  if (shouldRotate) {
-    float temp = bbox_width;
-    bbox_width = bbox_height;
-    bbox_height = temp;
-  }
-  
+
   // Usable paper area: subtract margins (in mm) then convert to SVG px
   float margin_mm = getMarginMM(margin);
   float usable_width = mmToSvgPx(paper_dims[0] - 2 * margin_mm);
@@ -222,12 +210,9 @@ float calculateExportScale(BoundingBox bbox, int paper_format, int margin, boole
 // Convert a point already in centered drawing space to mm page coordinates.
 // s   = export_scale (drawing units → SVG px)
 // K   = 25.4/96 (SVG px → mm)
-// rot = true → apply -90° rotation before scaling
 float[] centeredToMM(float cx, float cy, float s, float K,
-                     float page_cx_mm, float page_cy_mm, boolean rot) {
-  float lx = cx, ly = cy;
-  if (rot) { float t = lx; lx = -ly; ly = t; }
-  return new float[]{ lx * s * K + page_cx_mm, ly * s * K + page_cy_mm };
+                     float page_cx_mm, float page_cy_mm) {
+  return new float[]{ cx * s * K + page_cx_mm, cy * s * K + page_cy_mm };
 }
 
 // Write a PolylineGroup directly to an SVG file, bypassing Processing's SVG renderer.
@@ -236,7 +221,21 @@ float[] centeredToMM(float cx, float cy, float s, float K,
 // - Clipping is applied when data.page.clipping is true
 // - Progress is printed to the console every 10 %
 void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) {
-  float[] paper_dims      = getPaperDimensions(paper_format);
+  final boolean clipping = data.page.clipping;
+  final float   clip_w   = data.page.clip_width;
+  final float   clip_h   = data.page.clip_height;
+
+  // Auto-center: map bbox center to page center (respect clipping when enabled)
+  BoundingBox bbox = polylines.getBoundingBox(clipping, clip_w, clip_h);
+  float bcx = (bbox.minX + bbox.maxX) / 2.0;
+  float bcy = (bbox.minY + bbox.maxY) / 2.0;
+
+  // Page orientation follows the drawing's aspect ratio (no content rotation).
+  // Uses the same file_ui.export_landscape as export_scale (updateExportScale) so
+  // orientation and scale always stay in sync — see xLib_FileUI.updateExportScale().
+  boolean landscape = file_ui.export_landscape;
+
+  float[] paper_dims      = getPaperDimensions(paper_format, landscape);
   final boolean has_paper = (paper_dims != null);
   final String  dim_u     = has_paper ? "mm" : "px";
   final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
@@ -245,24 +244,13 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
   final float   cx_mm     = w_mm / 2.0;
   final float   cy_mm     = h_mm / 2.0;
   final float s       = file_ui.export_scale;          // drawing units → SVG px
-  final boolean rot   = file_ui.export_should_rotate;
   // stroke-width in mm: lineWidth (drawing units) × scale (units→px) × K (px→mm)
   final float stroke_mm = data.style.lineWidth * s * K;
-
-  final boolean clipping = data.page.clipping;
-  final float   clip_w   = data.page.clip_width;
-  final float   clip_h   = data.page.clip_height;
-
-  // Auto-center: map bbox center to page center
-  BoundingBox bbox = polylines.getBoundingBox(false, 0, 0);
-  float bcx = (bbox.minX + bbox.maxX) / 2.0;
-  float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
   int total = polylines.size();
   println("[SVG direct] " + total + " polylines  |  " + (int)w_mm + "x" + (int)h_mm + " " + dim_u +
           "  |  scale=" + String.format(java.util.Locale.US, "%.4f", s) +
-          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u +
-          (rot ? "  |  rot+90deg" : ""));
+          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u);
 
   // Ensure Export directory exists
   new java.io.File(sketchPath("Export")).mkdirs();
@@ -292,7 +280,7 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
       out.print("<path d=\"");
       boolean first = true;
       for (PVector p : pl.points) {
-        float[] mm = centeredToMM(p.x - bcx, p.y - bcy, s, K, cx_mm, cy_mm, rot);
+        float[] mm = centeredToMM(p.x - bcx, p.y - bcy, s, K, cx_mm, cy_mm);
         if (first) {
           out.print(String.format(java.util.Locale.US, "M %.4f,%.4f", mm[0], mm[1]));
           first = false;
@@ -308,11 +296,10 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
       int segs = 0;
       for (int i = 0; i < pl.size() - 1; i++) {
         PVector a = pl.get(i), b = pl.get(i + 1);
-        float ax = a.x - bcx, ay = a.y - bcy;
-        float bx = b.x - bcx, by = b.y - bcy;
-        if (clipLineToCenteredRect(ax, ay, bx, by, 0, 0, clip_w, clip_h, clipOut)) {
-          float[] p0 = centeredToMM(clipOut[0], clipOut[1], s, K, cx_mm, cy_mm, rot);
-          float[] p1 = centeredToMM(clipOut[2], clipOut[3], s, K, cx_mm, cy_mm, rot);
+        // Clip in original drawing space (centered on 0,0), then apply export centering.
+        if (clipLineToCenteredRect(a.x, a.y, b.x, b.y, 0, 0, clip_w, clip_h, clipOut)) {
+          float[] p0 = centeredToMM(clipOut[0] - bcx, clipOut[1] - bcy, s, K, cx_mm, cy_mm);
+          float[] p1 = centeredToMM(clipOut[2] - bcx, clipOut[3] - bcy, s, K, cx_mm, cy_mm);
           sb.append(String.format(java.util.Locale.US,
             "M %.4f,%.4f L %.4f,%.4f ", p0[0], p0[1], p1[0], p1[1]));
           segs++;
@@ -341,7 +328,20 @@ void writeSVGDirect(String filepath, PolylineGroup polylines, int paper_format) 
 // Dots are rendered as zero-length lines with round linecap — same stroke-width as polylines.
 // This is the AxiDraw convention: a capped zero-length stroke = filled dot of diameter=stroke-width.
 void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
-  float[] paper_dims      = getPaperDimensions(paper_format);
+  final boolean clipping = data.page.clipping;
+  final float   clip_w   = data.page.clip_width;
+  final float   clip_h   = data.page.clip_height;
+
+  BoundingBox bbox = shapes.getBoundingBox(clipping, clip_w, clip_h);
+  float bcx = (bbox.minX + bbox.maxX) / 2.0;
+  float bcy = (bbox.minY + bbox.maxY) / 2.0;
+
+  // Page orientation follows the drawing's aspect ratio (no content rotation).
+  // Uses the same file_ui.export_landscape as export_scale (updateExportScale) so
+  // orientation and scale always stay in sync — see xLib_FileUI.updateExportScale().
+  boolean landscape = file_ui.export_landscape;
+
+  float[] paper_dims      = getPaperDimensions(paper_format, landscape);
   final boolean has_paper = (paper_dims != null);
   final String  dim_u     = has_paper ? "mm" : "px";
   final float   K         = has_paper ? (25.4 / 96.0) : 1.0;
@@ -350,23 +350,13 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
   final float   cx_mm     = w_mm / 2.0;
   final float   cy_mm     = h_mm / 2.0;
   final float s         = file_ui.export_scale;
-  final boolean rot     = file_ui.export_should_rotate;
   final float stroke_mm = data.style.lineWidth * s * K;
-
-  final boolean clipping = data.page.clipping;
-  final float   clip_w   = data.page.clip_width;
-  final float   clip_h   = data.page.clip_height;
-
-  BoundingBox bbox = shapes.getBoundingBox(false, 0, 0);
-  float bcx = (bbox.minX + bbox.maxX) / 2.0;
-  float bcy = (bbox.minY + bbox.maxY) / 2.0;
 
   int total = shapes.totalCount();
   println("[SVG direct] " + shapes.polylineCount() + " polylines, " + shapes.dotCount() + " dots  |  " +
           (int)w_mm + "x" + (int)h_mm + " " + dim_u +
           "  |  scale=" + String.format(java.util.Locale.US, "%.4f", s) +
-          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u +
-          (rot ? "  |  rot+90deg" : ""));
+          "  |  stroke=" + String.format(java.util.Locale.US, "%.4f", stroke_mm) + " " + dim_u);
 
   new java.io.File(sketchPath("Export")).mkdirs();
   PrintWriter out = createWriter(filepath);
@@ -393,7 +383,7 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
       out.print("<path d=\"");
       boolean first = true;
       for (PVector p : pl.points) {
-        float[] mm = centeredToMM(p.x - bcx, p.y - bcy, s, K, cx_mm, cy_mm, rot);
+        float[] mm = centeredToMM(p.x - bcx, p.y - bcy, s, K, cx_mm, cy_mm);
         if (first) { out.print(String.format(java.util.Locale.US, "M %.4f,%.4f", mm[0], mm[1])); first = false; }
         else        { out.print(String.format(java.util.Locale.US, " L %.4f,%.4f", mm[0], mm[1])); }
       }
@@ -404,11 +394,10 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
       int segs = 0;
       for (int i = 0; i < pl.size() - 1; i++) {
         PVector a = pl.get(i), b = pl.get(i + 1);
-        float ax = a.x - bcx, ay = a.y - bcy;
-        float bx = b.x - bcx, by = b.y - bcy;
-        if (clipLineToCenteredRect(ax, ay, bx, by, 0, 0, clip_w, clip_h, clipOut)) {
-          float[] p0 = centeredToMM(clipOut[0], clipOut[1], s, K, cx_mm, cy_mm, rot);
-          float[] p1 = centeredToMM(clipOut[2], clipOut[3], s, K, cx_mm, cy_mm, rot);
+        // Clip in original drawing space (centered on 0,0), then apply export centering.
+        if (clipLineToCenteredRect(a.x, a.y, b.x, b.y, 0, 0, clip_w, clip_h, clipOut)) {
+          float[] p0 = centeredToMM(clipOut[0] - bcx, clipOut[1] - bcy, s, K, cx_mm, cy_mm);
+          float[] p1 = centeredToMM(clipOut[2] - bcx, clipOut[3] - bcy, s, K, cx_mm, cy_mm);
           sb.append(String.format(java.util.Locale.US,
             "M %.4f,%.4f L %.4f,%.4f ", p0[0], p0[1], p1[0], p1[1]));
           segs++;
@@ -424,9 +413,11 @@ void writeSVGDirect(String filepath, ShapesGroup shapes, int paper_format) {
 
   // ── Dots: zero-length line with round linecap = filled dot (AxiDraw convention) ──
   for (Dot d : shapes.dots) {
-    float px = d.pos.x - bcx, py = d.pos.y - bcy;
+    float px = d.pos.x, py = d.pos.y;
     if (clipping && !pointInClipRect(px, py, 0, 0, clip_w, clip_h)) continue;
-    float[] mm = centeredToMM(px, py, s, K, cx_mm, cy_mm, rot);
+    px -= bcx;
+    py -= bcy;
+    float[] mm = centeredToMM(px, py, s, K, cx_mm, cy_mm);
     out.println(String.format(java.util.Locale.US,
       "<line x1=\"%.4f\" y1=\"%.4f\" x2=\"%.4f\" y2=\"%.4f\" />",
       mm[0], mm[1], mm[0] + 0.0001f, mm[1] + 0.0001f));

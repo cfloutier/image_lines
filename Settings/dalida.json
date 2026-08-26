@@ -1,70 +1,70 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -16777216,
-    "lineWidth": 1.6500000953674316
-  },
-  "Page": {
-    "clipping": false,
-    "clip_width": 0,
-    "clip_height": 0,
-    "global_scale": 1.3600006103515625
-  },
-  "Image": {
-    "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 1142,
-    "Contrast": 0,
-    "source_file": "dalida.jpg"
-  },
-  "Lines": {
-    "SinusLines": {
-      "high": 20,
-      "period": 100,
-      "size": 520.7666625976562,
-      "direction_sinus": 0
-    },
-    "canvas_width": 841,
-    "lines_spacing": 0.5,
-    "nb_lines": 2440,
-    "precision": 3.5973334312438965,
-    "canvas_height": 733,
-    "draw": false,
-    "type": 1,
-    "CircleLines": {
-      "max_radius": 1420.0001220703125,
-      "min_radius": 200.00001525878906,
-      "ellipse": -0.059999942779541016,
-      "center_y": 800,
-      "center_x": -33.333251953125
-    },
-    "use_canvas": false,
-    "StraightLines": {
-      "size": 520.7666625976562,
-      "direction": -39.599998474121094
-    }
-  },
-  "Threshold": {
-    "threshold_12": 238.49974060058594,
-    "threshold_11": 215.0500030517578,
-    "mirror": true,
-    "threshold_2": 42.18988037109375,
-    "threshold_3": 56.09553909301758,
-    "threshold_10": 192.21820068359375,
-    "threshold_1": 32.29999923706055,
-    "black": true,
-    "draw": true,
-    "min_value": 32.29999923706055,
-    "use_power": true,
-    "threshold_6": 108.2543716430664,
-    "threshold_7": 127.98614501953125,
-    "threshold_4": 72.06898498535156,
-    "power": 0.2666664123535156,
-    "threshold_5": 89.55325317382812,
-    "nb_values": 11,
-    "threshold_8": 148.6183624267578,
-    "max_value": 215.0500030517578,
-    "threshold_9": 170.05418395996094
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -16777216,
+                  "lineWidth":  1.6500000953674316
+              },
+    "Page":  {
+                 "clipping":  false,
+                 "clip_width":  0,
+                 "clip_height":  0,
+                 "global_scale":  1.3600006103515625
+             },
+    "Image":  {
+                  "reset_image":  false,
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  1142,
+                  "Contrast":  0,
+                  "source_file":  "dalida.jpg"
+              },
+    "Lines":  {
+                  "SinusLines":  {
+                                     "high":  20,
+                                     "period":  100,
+                                     "size":  520.7666625976562,
+                                     "direction_sinus":  0
+                                 },
+                  "canvas_width":  841,
+                  "lines_spacing":  0.5,
+                  "nb_lines":  2440,
+                  "precision":  3.5973334312438965,
+                  "canvas_height":  733,
+                  "draw":  false,
+                  "type":  1,
+                  "CircleLines":  {
+                                      "max_radius":  1420.0001220703125,
+                                      "min_radius":  200.00001525878906,
+                                      "ellipse":  -0.059999942779541016,
+                                      "center_y":  800,
+                                      "center_x":  -33.333251953125
+                                  },
+                  "use_canvas":  false,
+                  "StraightLines":  {
+                                        "size":  520.7666625976562,
+                                        "direction":  -39.599998474121094
+                                    }
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  238.49974060058594,
+                      "threshold_11":  215.0500030517578,
+                      "threshold_2":  42.18988037109375,
+                      "threshold_3":  56.09553909301758,
+                      "threshold_10":  192.21820068359375,
+                      "threshold_1":  32.29999923706055,
+                      "black":  true,
+                      "min_value":  32.29999923706055,
+                      "use_power":  true,
+                      "threshold_6":  108.2543716430664,
+                      "threshold_7":  127.98614501953125,
+                      "threshold_4":  72.06898498535156,
+                      "power":  0.2666664123535156,
+                      "threshold_5":  89.55325317382812,
+                      "nb_values":  11,
+                      "threshold_8":  148.6183624267578,
+                      "max_value":  215.0500030517578,
+                      "threshold_9":  170.05418395996094,
+                      "distribution_mode":  1
+                  }
 }

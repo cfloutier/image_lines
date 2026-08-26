@@ -1,70 +1,70 @@
-{
-  "Style": {
-    "backgroundColor": -1,
-    "lineColor": -16777216,
-    "lineWidth": 1.0833333730697632
-  },
-  "Page": {
-    "clipping": false,
-    "clip_width": 0,
-    "clip_height": 0,
-    "global_scale": 1
-  },
-  "Image": {
-    "reset_image": false,
-    "Blur": 2,
-    "ImageAlpha": 0,
-    "Width": 806,
-    "Contrast": 0,
-    "source_file": "tree.png"
-  },
-  "Lines": {
-    "SinusLines": {
-      "high": 20,
-      "period": 100,
-      "size": 520.7666625976562,
-      "direction_sinus": 0
-    },
-    "canvas_width": 733,
-    "lines_spacing": 0.5,
-    "nb_lines": 3000,
-    "precision": 3.5973334312438965,
-    "canvas_height": 733,
-    "draw": false,
-    "type": 1,
-    "CircleLines": {
-      "max_radius": 1500,
-      "min_radius": 0,
-      "ellipse": 0,
-      "center_y": 0,
-      "center_x": 0
-    },
-    "use_canvas": true,
-    "StraightLines": {
-      "size": 520.7666625976562,
-      "direction": 45.600006103515625
-    }
-  },
-  "Threshold": {
-    "threshold_12": 254.05670166015625,
-    "threshold_11": 237.52682495117188,
-    "mirror": true,
-    "threshold_2": 54.11927795410156,
-    "threshold_3": 81.16551208496094,
-    "threshold_10": 220.57769775390625,
-    "threshold_1": 14.450000762939453,
-    "black": true,
-    "draw": true,
-    "min_value": 14.450000762939453,
-    "use_power": true,
-    "threshold_6": 147.09225463867188,
-    "threshold_7": 166.52850341796875,
-    "threshold_4": 104.87641906738281,
-    "power": -0.33333301544189453,
-    "threshold_5": 126.65167999267578,
-    "nb_values": 9,
-    "threshold_8": 185.16746520996094,
-    "max_value": 203.15000915527344,
-    "threshold_9": 203.15000915527344
-  }
+﻿{
+    "Style":  {
+                  "backgroundColor":  -1,
+                  "lineColor":  -16777216,
+                  "lineWidth":  1.0833333730697632
+              },
+    "Page":  {
+                 "clipping":  false,
+                 "clip_width":  0,
+                 "clip_height":  0,
+                 "global_scale":  1
+             },
+    "Image":  {
+                  "reset_image":  false,
+                  "Blur":  2,
+                  "ImageAlpha":  0,
+                  "Width":  806,
+                  "Contrast":  0,
+                  "source_file":  "tree.png"
+              },
+    "Lines":  {
+                  "SinusLines":  {
+                                     "high":  20,
+                                     "period":  100,
+                                     "size":  520.7666625976562,
+                                     "direction_sinus":  0
+                                 },
+                  "canvas_width":  733,
+                  "lines_spacing":  0.5,
+                  "nb_lines":  3000,
+                  "precision":  3.5973334312438965,
+                  "canvas_height":  733,
+                  "draw":  false,
+                  "type":  1,
+                  "CircleLines":  {
+                                      "max_radius":  1500,
+                                      "min_radius":  0,
+                                      "ellipse":  0,
+                                      "center_y":  0,
+                                      "center_x":  0
+                                  },
+                  "use_canvas":  true,
+                  "StraightLines":  {
+                                        "size":  520.7666625976562,
+                                        "direction":  45.600006103515625
+                                    }
+              },
+    "Threshold":  {
+                      "enabled":  true,
+                      "threshold_12":  254.05670166015625,
+                      "threshold_11":  237.52682495117188,
+                      "threshold_2":  54.11927795410156,
+                      "threshold_3":  81.16551208496094,
+                      "threshold_10":  220.57769775390625,
+                      "threshold_1":  14.450000762939453,
+                      "black":  true,
+                      "min_value":  14.450000762939453,
+                      "use_power":  true,
+                      "threshold_6":  147.09225463867188,
+                      "threshold_7":  166.52850341796875,
+                      "threshold_4":  104.87641906738281,
+                      "power":  -0.33333301544189453,
+                      "threshold_5":  126.65167999267578,
+                      "nb_values":  9,
+                      "threshold_8":  185.16746520996094,
+                      "max_value":  203.15000915527344,
+                      "threshold_9":  203.15000915527344,
+                      "distribution_mode":  1
+                  }
 }
