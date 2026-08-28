@@ -1,12 +1,20 @@
 String get_xlib_version()
 {
-  return "4.3.0";
+  return "4.4.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [4.4.0] - 2026-08-27
+ - xLib_ThresholdData.pde (image_lines, image_contours): clicking the "Black Lines"
+ toggle now also swaps Style's Line/Background colors, same as the Style tab's own
+ "Invert" button - "Black Lines" is this project's equivalent of image_dots' Dots-tab
+ Invert toggle (flips which tonal range is treated as filled), wired the same way
+ (image_dots gets the same wiring, but its Invert toggle is project-specific code, not
+ a shared xLib file, so no version bump needed there).
 
  ## [4.3.0] - 2026-08-27
  - Style tab: new "Invert" button swaps Line Color / Background Color (and re-tints both

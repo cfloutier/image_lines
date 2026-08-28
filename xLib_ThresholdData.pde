@@ -193,6 +193,7 @@ class ThresholdGUI extends GUIPanel
   Slider      power;
   Slider      min_value;
   Slider      max_value;
+  long        _lastInvertSwapMillis = 0;
 
   void setupControls()
   {
@@ -232,5 +233,35 @@ class ThresholdGUI extends GUIPanel
     power.setValue(data.power);
     min_value.setValue(data.min_value);
     max_value.setValue(data.max_value);
+  }
+
+  // "Black Lines" is this project's equivalent of image_dots' Dots-tab
+  // Invert toggle - flips which tonal range is treated as "filled" - so it
+  // gets the same Line/Background color swap on click. Handled in
+  // controlEvent() (not plugTo()) specifically because controlEvent() is the
+  // one path already proven to respect cp5.setBroadcast(false) (see
+  // MainPanel.setGUIValues()'s own comment), so loading a settings file with
+  // black=true doesn't itself trigger a swap, only a real click does. No
+  // `return` - falls through to super.controlEvent() same as every other
+  // control on this tab, so the usual changed-marking still happens.
+  //
+  // The millis() debounce guards against a separate bug found the first time
+  // this was attempted (image_dots, pre-ColorChooser-rewrite): controlEvent()
+  // fired twice for a single click on that project's reflection-bound invert
+  // toggle, silently swapping the colors there and back. Root cause never
+  // fully pinned down; this makes the fix correct regardless of how many
+  // times it turns out to fire here too.
+  public void controlEvent(ControlEvent theEvent)
+  {
+    if (theEvent.isController() && theEvent.getController() == black)
+    {
+      long now = millis();
+      if (now - _lastInvertSwapMillis >= 50)
+      {
+        _lastInvertSwapMillis = now;
+        dataGui.style_ui.invertColors();
+      }
+    }
+    super.controlEvent(theEvent);
   }
 }
