@@ -35,6 +35,7 @@ ThresholdFilter threshold_filter;
 PGraphics current_graphics;
 
 ControlP5 cp5;
+ColorChooserPopup colorPopup;
 
 void setup()
 {
@@ -64,10 +65,8 @@ void setup()
 
 void setupControls()
 {
-  cp5 = new ControlP5(this);
-  cp5.getTab("default").setLabel("Hide GUI");
+  init_xlib();
 
-  // addFileTab();
   dataGui.Init();
 }
 

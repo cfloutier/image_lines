@@ -3,6 +3,28 @@ int indexControler = 0;
 static final int StartX = 20;
 static final int StartY = 20;
 
+// One-call setup for the shared xLib GUI framework: creates cp5, renames its
+// built-in "default" tab to "Hide GUI" (that tab doubles as a fake-popup
+// surface, used by both xLib_FileUI.pde's Load/Save picker and
+// xLib_ColorChooser.pde's color picker), and sets up the shared color
+// chooser popup. Call once at the top of each project's own setupControls(),
+// before dataGui.Init().
+void init_xlib()
+{
+  init_xlib(true);
+}
+
+// autoDrawColorPopup=false skips wiring the color popup's automatic
+// registerMethod("draw", ...) callback - see setupColorPopup(boolean) in
+// xLib_ColorChooser.pde for when/why (P3D sketches with manual ControlP5
+// drawing, like trace_3d, need this).
+void init_xlib(boolean autoDrawColorPopup)
+{
+  cp5 = new ControlP5(this);
+  cp5.getTab("default").setLabel("Hide GUI");
+  setupColorPopup(autoDrawColorPopup);
+}
+
 static class LabelsHandler
 {
   static public ArrayList<Textlabel> labels = new ArrayList<Textlabel>();
@@ -400,6 +422,48 @@ class GUIPanel implements ControlListener
     grp.Init(this);
 
     return grp;
+  }
+
+  // Small square trigger button (tinted to the current color) that opens the
+  // shared ColorChooserPopup instead of laying the full swatch grid out
+  // inline - use this on any tab where addColorGroup() would take up too
+  // much space. A fixed-color frame button sits just behind/around it so the
+  // swatch stays visible even when it happens to match the page background.
+  // The frame is .lock()'d - non-interactive, purely decorative - so it
+  // can't intercept clicks meant for the swatch on top of it; without this,
+  // the two overlapping buttons occasionally ate the first click on the
+  // swatch (had to move the mouse away and back to get it to register).
+  Button addColorChooser(String name, ColorSetter target)
+  {
+
+    yPos += 6;
+
+    inlineLabel(name, 100);
+    cp5.addButton("colorchooserframe" + indexControler)
+      .setPosition(xPos - 2, yPos - 2)
+      .setSize(24, 24)
+      .setLabel("")
+      .moveTo(pageName)
+      .setColorBackground(color(120))
+      .lock();
+    indexControler++;
+
+    Button bt = cp5.addButton("colorchooser" + indexControler)
+      .setPosition(xPos, yPos)
+      .setSize(20, 20)
+      .setLabel("")
+      .moveTo(pageName)
+      .setColorBackground(target.getColor());
+    bt.bringToFront();
+
+    indexControler++;
+    xPos += 30;
+
+    bt.plugTo(new ColorChooserTrigger(pageName, target, bt), "onClic");
+
+    nextLine();
+
+    return bt;
   }
 
   Button addButton(String name)
