@@ -1,13 +1,20 @@
 String get_xlib_version()
 {
-  return "4.5.0";
+  return "4.5.1";
 }
 
 
 /*
 
  # CHANGELOG
- 
+
+ ## [4.5.1] - 2026-08-28
+ - Fix: xLib_ThresholdData.pde's invert-swap wiring (4.4.0) referenced dataGui.style_ui
+ directly, which broke gravity's build - it names the field style_gui, and carries a
+ (never instantiated) copy of ThresholdGUI regardless, since this file is pushed to every
+ project. Replaced with a new xLib_Style.pde helper, findStyleGUI(), which finds the
+ project's StyleGUI by searching MainPanel.panels instead of assuming a field name.
+
  ## [4.5.0] - 2026-08-28
  - xLib_Image.pde: new *Reload* button next to *Select Source Image* - re-reads the
  current file from disk (data.setImage(data.source_file)) without needing to re-pick it,

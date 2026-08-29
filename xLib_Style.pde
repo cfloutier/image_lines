@@ -111,3 +111,20 @@ class StyleGUI extends GUIPanel
     LabelsHandler.set_labels_colors( color(255-red(_color), 255-green(_color), 255-blue(_color))   );
   }
 }
+
+// Finds the project's StyleGUI instance without depending on what field name
+// it's stored under in that project's own DataGUI - those aren't consistent
+// across projects (e.g. gravity's DataGlobal.pde calls it `style_gui`, most
+// others call it `style_ui`), and code in a *shared* xLib file (like
+// xLib_ThresholdData.pde's invert-swap wiring) can't assume either one.
+// Searches MainPanel.panels instead, which every project populates via
+// addTab() regardless of what it names the field. Returns null if a project
+// genuinely has no Style tab (shouldn't happen, but shared code should
+// degrade gracefully rather than NPE on an unusual project).
+StyleGUI findStyleGUI()
+{
+  for (GUIPanel p : dataGui.panels)
+    if (p instanceof StyleGUI)
+      return (StyleGUI) p;
+  return null;
+}

@@ -251,6 +251,14 @@ class ThresholdGUI extends GUIPanel
   // toggle, silently swapping the colors there and back. Root cause never
   // fully pinned down; this makes the fix correct regardless of how many
   // times it turns out to fire here too.
+  //
+  // Uses findStyleGUI() (xLib_Style.pde) rather than a hardcoded
+  // dataGui.style_ui - this file is pushed to every project regardless of
+  // whether it's actually used (e.g. gravity carries a copy but never
+  // instantiates ThresholdGUI at all), and project DataGUI field names for
+  // their StyleGUI aren't consistent (gravity: style_gui; most others:
+  // style_ui) - a hardcoded field name broke gravity's build even though the
+  // class is dead code there, since Processing still compiles every tab.
   public void controlEvent(ControlEvent theEvent)
   {
     if (theEvent.isController() && theEvent.getController() == black)
@@ -259,7 +267,9 @@ class ThresholdGUI extends GUIPanel
       if (now - _lastInvertSwapMillis >= 50)
       {
         _lastInvertSwapMillis = now;
-        dataGui.style_ui.invertColors();
+        StyleGUI sg = findStyleGUI();
+        if (sg != null)
+          sg.invertColors();
       }
     }
     super.controlEvent(theEvent);
