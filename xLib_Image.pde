@@ -192,6 +192,19 @@ class ImageGUI extends GUIPanel
     bringNativeFileDialogToFront();
   } //End Load File
 
+  // Re-reads the currently selected file from disk - for when it was edited
+  // externally (e.g. touched up in an image editor) after being loaded here.
+  // setImage() re-reads unconditionally (no file-changed check - loadImage()
+  // has no cheap way to tell if the file changed anyway) and sets
+  // reset_image, so buildTransformedImage() rebuilds on the next frame same
+  // as a fresh selection would.
+  void ReloadImage()
+  {
+    if (data.source_file == null || data.source_file.equals(""))
+      return;
+    data.setImage(data.source_file);
+  }
+
   void update_ui()
   {
     if (data.source_file == "")
@@ -210,6 +223,7 @@ class ImageGUI extends GUIPanel
   Slider levelsGamma;
   Button resetLevels_bt;
   Button select_bt;
+  Button reload_bt;
 
   Textlabel file_Label;
 
@@ -219,6 +233,9 @@ class ImageGUI extends GUIPanel
 
     select_bt = addButton("Select Source Image");
     select_bt.plugTo(this, "SelectSourceImage");
+
+    reload_bt = addButton("Reload");
+    reload_bt.plugTo(this, "ReloadImage");
 
     file_Label = inlineLabel("File Label", 200);
 

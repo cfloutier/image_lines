@@ -1,13 +1,18 @@
 String get_xlib_version()
 {
-  return "4.4.0";
+  return "4.5.0";
 }
 
 
 /*
 
  # CHANGELOG
-
+ 
+ ## [4.5.0] - 2026-08-28
+ - xLib_Image.pde: new *Reload* button next to *Select Source Image* - re-reads the
+ current file from disk (data.setImage(data.source_file)) without needing to re-pick it,
+ for when it was edited externally after being loaded.
+ 
  ## [4.4.0] - 2026-08-27
  - xLib_ThresholdData.pde (image_lines, image_contours): clicking the "Black Lines"
  toggle now also swaps Style's Line/Background colors, same as the Style tab's own
@@ -15,27 +20,27 @@ String get_xlib_version()
  Invert toggle (flips which tonal range is treated as filled), wired the same way
  (image_dots gets the same wiring, but its Invert toggle is project-specific code, not
  a shared xLib file, so no version bump needed there).
-
+ 
  ## [4.3.0] - 2026-08-27
  - Style tab: new "Invert" button swaps Line Color / Background Color (and re-tints both
  trigger buttons to match).
-
+ 
  ## [4.2.1] - 2026-08-27
  - Custom mode's OK button given more clearance below the SV square (was crowding the
  Slider2D's own "0,0" value label right beneath it).
-
+ 
  ## [4.2.0] - 2026-08-27
  - Custom mode now has an "OK" button (below the SV square) to close the popup - unlike a
  swatch click, dragging the hue/SV controls has no discrete "done" moment, so it used to
  only close by switching tabs, which wasn't obvious.
-
+ 
  ## [4.1.0] - 2026-08-27
  - init_xlib()/setupColorPopup() gained an optional `boolean autoDraw` parameter
  (defaults to true, matching prior behavior exactly). Pass false to skip the color
  popup's automatic registerMethod("draw", colorPopup) and call colorPopup.draw()
  manually instead, wherever your own draw loop has the right state for it - needed for
  trace_3d (P3D, manual ControlP5 drawing via drawControlP5() for the same reason).
-
+ 
  ## [4.0.0] - 2026-08-27
  - New ColorChooser popup: replaces the big inline swatch grid with a small square
  trigger button (any tab can offer one via GUIPanel.addColorChooser()) that opens a
@@ -51,7 +56,7 @@ String get_xlib_version()
  `init_xlib();`. Also needs a `ColorChooserPopup colorPopup;` global declared next to
  `cp5` (Java requires the field itself to live in the sketch's own class - can't be
  hidden inside init_xlib()).
-
+ 
  ## [3.14.0] - 2026-08-26
  - Removed ColorRef from xLib_Style/xLib_ColorRef. Style.lineColor/backgroundColor are now
  plain color fields instead of a ColorRef wrapper - GenericData's generic reflection already
