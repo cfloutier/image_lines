@@ -61,7 +61,7 @@ class DataPage extends GenericData
   // down), false = wide side vertical (e.g. A4 upright). Irrelevant for ASPECT_NONE.
   boolean clip_landscape = false;
 
-  int paper_format = PAPER_NONE;  // 0: None, 1: A4, 2: A3, 3: A2, 4: Raisin (50x65 cm)
+  int paper_format = PAPER_NONE;  // 0: None, 1: A6, 2: A5, 3: A4, 4: A3, 5: A2, 6: Raisin (50x65 cm)
   int margin = MARGIN_3CM;  // 0: 0cm, 1: 1cm, 2: 2cm, 3: 3cm
 
   DataPage() {
@@ -316,6 +316,11 @@ class FileGUI extends GUIPanel
     addLabel("Export Page size :");
     ArrayList<String> paper_formats = new ArrayList<String>();
     paper_formats.add("None");
+    // A6/A5 inserted here (ascending size order) rather than appended - unlike
+    // clip_ratios above, this renumbers PAPER_* values and reinterprets any
+    // paper_format already saved in a settings file. Accepted tradeoff.
+    paper_formats.add("A6");
+    paper_formats.add("A5");
     paper_formats.add("A4");
     paper_formats.add("A3");
     paper_formats.add("A2");
@@ -842,6 +847,12 @@ class FileGUI extends GUIPanel
       String name = data.name.equals("") ? "default" : data.name;
       String fmt  = "";
       switch (page_data.paper_format) {
+      case PAPER_A6:
+        fmt = "_A6";
+        break;
+      case PAPER_A5:
+        fmt = "_A5";
+        break;
       case PAPER_A4:
         fmt = "_A4";
         break;
@@ -972,6 +983,12 @@ void start_draw()
     // Add paper format to filename
     String format_suffix = "";
     switch(data.page.paper_format) {
+    case PAPER_A6:
+      format_suffix = "_A6";
+      break;
+    case PAPER_A5:
+      format_suffix = "_A5";
+      break;
     case PAPER_A4:
       format_suffix = "_A4";
       break;

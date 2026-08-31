@@ -1,12 +1,18 @@
 String get_xlib_version()
 {
-  return "4.5.1";
+  return "4.6.0";
 }
 
 
 /*
 
  # CHANGELOG
+
+ ## [4.6.0] - 2026-08-30
+ - Export Page size: added A6 and A5 formats, inserted before A4 in the list. This
+ renumbers the paper_format value stored in settings files (A6=1, A5=2, A4=3, A3=4,
+ A2=5, Raisin=6) - a settings file saved before this change will load with the wrong
+ page size selected; check the Export Page size radio after loading an old settings file.
 
  ## [4.5.1] - 2026-08-28
  - Fix: xLib_ThresholdData.pde's invert-swap wiring (4.4.0) referenced dataGui.style_ui

@@ -1,9 +1,14 @@
 // Paper format constants
+// Values renumbered when A6/A5 were added (ascending size order in the UI) -
+// any settings file saved before this change will load with a shifted/wrong
+// paper_format index. Accepted tradeoff: the user notices at export time.
 final int PAPER_NONE = 0;
-final int PAPER_A4 = 1;
-final int PAPER_A3 = 2;
-final int PAPER_A2 = 3;
-final int PAPER_RAISIN = 4;  // Grand Raisin 50x65 cm
+final int PAPER_A6 = 1;
+final int PAPER_A5 = 2;
+final int PAPER_A4 = 3;
+final int PAPER_A3 = 4;
+final int PAPER_A2 = 5;
+final int PAPER_RAISIN = 6;  // Grand Raisin 50x65 cm
 
 // Margin constants (in mm)
 final int MARGIN_0CM = 0;
@@ -17,6 +22,10 @@ final float MARGIN_3CM_MM = 30;
 final float MARGIN_2CM_MM = 20;
 
 // Paper dimensions in mm
+final float A6_WIDTH_MM = 105;
+final float A6_HEIGHT_MM = 148;
+final float A5_WIDTH_MM = 148;
+final float A5_HEIGHT_MM = 210;
 final float A4_WIDTH_MM = 210;
 final float A4_HEIGHT_MM = 297;
 final float A3_WIDTH_MM = 297;
@@ -70,6 +79,8 @@ float[] getPaperDimensions(int format_enum, boolean landscape)
 {
   float[] dims;
   switch(format_enum) {
+    case PAPER_A6: dims = new float[]{ A6_WIDTH_MM, A6_HEIGHT_MM }; break;
+    case PAPER_A5: dims = new float[]{ A5_WIDTH_MM, A5_HEIGHT_MM }; break;
     case PAPER_A4: dims = new float[]{ A4_WIDTH_MM, A4_HEIGHT_MM }; break;
     case PAPER_A3: dims = new float[]{ A3_WIDTH_MM, A3_HEIGHT_MM }; break;
     case PAPER_A2: dims = new float[]{ A2_WIDTH_MM, A2_HEIGHT_MM }; break;
@@ -87,6 +98,8 @@ void printExportDebugInfo(BoundingBox bbox, float scale, int paper_format)
   String format_name = "UNKNOWN";
   switch(paper_format) {
     case PAPER_NONE: format_name = "None"; break;
+    case PAPER_A6: format_name = "A6"; break;
+    case PAPER_A5: format_name = "A5"; break;
     case PAPER_A4: format_name = "A4"; break;
     case PAPER_A3: format_name = "A3"; break;
     case PAPER_A2: format_name = "A2"; break;
